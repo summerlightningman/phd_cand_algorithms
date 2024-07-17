@@ -1,5 +1,4 @@
 use super::ant::Ant;
-use super::types::{City, PheromoneMatrix};
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
@@ -16,37 +15,35 @@ pub struct AntColonyAlgorithm {
 }
 
 impl AntColonyAlgorithm {
-    pub fn new(
-        iters_count: usize,
-        solutions_count: usize,
-        actors_count: usize,
-        alpha: f64,
-        beta: f64,
-        q: f64,
-        p: f64,
-        matrix: Vec<Vec<f64>>,
-    ) -> Self {
-        let cities_count = matrix.len();
+  pub fn new(
+      iters_count: usize,
+      solutions_count: usize,
+      actors_count: usize,
+      alpha: f64,
+      beta: f64,
+      q: f64,
+      p: f64,
+      matrix: Vec<Vec<f64>>,
+  ) -> Self {
+      let cities_count = matrix.len();
+      let pheromone_matrix = vec![vec![1.; cities_count]; cities_count];
+      let colony = (0..actors_count)
+          .map(|_| Ant::new(&cities_count))
+          .collect();
 
-        Self {
-            iters_count,
-            solutions_count,
-            actors_count,
-            alpha,
-            beta,
-            q,
-            p,
-            matrix,
-            pheromone_matrix: vec![vec![1.; cities_count]; cities_count],
-            colony: vec![Ant::new(&cities_count); cities_count],
-        }
-    }
-
-    fn get_pheromone(&self, ant: Ant, city: City) -> f64 {
-        self.pheromone_matrix[ant.current_city()][city]
-    }
-
-    
+      Self {
+          iters_count,
+          solutions_count,
+          actors_count,
+          alpha,
+          beta,
+          q,
+          p,
+          colony,
+          matrix,
+          pheromone_matrix,
+      }
+  }
 }
 
 #[derive(Debug)]
