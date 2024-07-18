@@ -30,9 +30,10 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
                 vec![vec![1.; cities_count]; cities_count];
             let mut solutions: Vec<Solution> = Vec::new();
 
-            for ant in self.colony {
+            for ant in &self.colony {
                 for _ in 0..cities_count {
                     let probabilities = self.get_probabilities_list(&ant);
+                    let city = self.select_city(probabilities);
                 }
             }
         }
@@ -113,27 +114,32 @@ impl AntColonyAlgorithm {
             .collect()
     }
 
-    fn get_probabilities_list(&self, ant: &Ant) -> Vec<f64> {
+    fn get_probabilities_list(&self, ant: &Ant) -> Result<Vec<f64>, &str> {
         let cities_preferences = self.get_ant_preferences(ant);
         let cities_preferences_sum: f64 = cities_preferences.iter().sum();
 
         if cities_preferences_sum == 0. {
-            return vec![0.; self.cities_count()];
+            Err("Error calculating")
+        } else {
+            Ok(self
+                .cities_list()
+                .iter()
+                .map(|city: &City| {
+                    let city_preference = cities_preferences[*city];
+                    city_preference / cities_preferences_sum
+                })
+                .collect())
         }
-
-        self.cities_list()
-            .iter()
-            .map(|city: &City| {
-                let city_preference = cities_preferences[*city];
-                city_preference / cities_preferences_sum
-            })
-            .collect()
     }
 
-    fn select_city(&self, probabilities: Vec<f64>) -> City {
+    fn select_city(&self, probabilities: Vec<f64>) -> Result<City, &str> {
         let cities_list: Vec<City> = self.cities_list();
-        let selected_city = random_choice().random_choice_f64(&cities_list, &probabilities, 1);
-        *selected_city[0]
+        let selected_cities = random_choice().random_choice_f64(&cities_list, &probabilities, 1);
+        if selected_cities.len() == 0 {
+            Err("Ant haven't found a path")
+        } else {
+            Ok(*selected_cities[0])
+        }
     }
 
     fn vape_pheromone(&mut self, iter_pheromone_matrix: &PheromoneMatrix) {
