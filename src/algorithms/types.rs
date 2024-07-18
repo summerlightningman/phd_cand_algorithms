@@ -6,7 +6,8 @@ pub enum Purpose {
 
 pub type City = usize;
 
+#[derive(Debug)]
 pub struct Solution {
     pub path: Vec<City>,
-    pub distance: f32,
+    pub distance: f64,
 }

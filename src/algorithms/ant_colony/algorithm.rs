@@ -5,6 +5,7 @@ use crate::algorithms::types::Solution;
 
 use super::ant::Ant;
 use super::types::{City, Matrix, PheromoneMatrix};
+use super::utils::calculate_distance;
 
 use random_choice::random_choice;
 
@@ -20,25 +21,44 @@ pub struct AntColonyAlgorithm {
     matrix: Matrix,
     pheromone_matrix: PheromoneMatrix,
     colony: Vec<Ant>,
+    solutions: Vec<Solution>,
 }
 
 impl OptimizationAlgorithm for AntColonyAlgorithm {
-    fn run(&mut self) -> Vec<Solution> {
+    fn run(&mut self) -> Result<Vec<Solution>, &str> {
         let cities_count = self.cities_count();
         for _ in 1..=self.iters_count {
             let mut iter_pheromone_matrix: PheromoneMatrix =
                 vec![vec![1.; cities_count]; cities_count];
             let mut solutions: Vec<Solution> = Vec::new();
 
-            for ant in &self.colony {
+            for ant in &mut self.colony {
+                let mut distance: f64 = 0.;
+
                 for _ in 0..cities_count {
-                    let probabilities = self.get_probabilities_list(&ant);
-                    let city = self.select_city(probabilities);
+                    let probabilities = self.get_probabilities_list(&ant)?;
+                    let city = self.select_city(probabilities)?;
+                    ant.go_to(city);
+
+                    distance = self.get_ant_distance(&ant);
+                    if distance > 0. {
+                        iter_pheromone_matrix[ant.previous_city()][city] += self.q / distance
+                    }
                 }
+
+                if ant.path.len() == self.cities_count() {
+                    solutions.push(Solution {
+                        path: ant.path.clone(),
+                        distance,
+                    });
+                }
+                ant.reset_path();
             }
+
+            self.vape_pheromone(&iter_pheromone_matrix);
         }
 
-        return Vec::new();
+        Ok(Vec::new())
     }
 }
 
@@ -149,6 +169,14 @@ impl AntColonyAlgorithm {
                 self.pheromone_matrix[i][j] =
                     self.pheromone_matrix[i][j] * (1. - self.p) + iter_pheromone_matrix[i][j]
             }
+        }
+    }
+
+    fn get_ant_distance(&self, ant: &Ant) -> f64 {
+        if ant.path.len() <= 1 {
+            0.
+        } else {
+            calculate_distance(&ant.path, &self.matrix)
         }
     }
 }
