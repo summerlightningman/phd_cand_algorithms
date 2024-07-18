@@ -1,5 +1,3 @@
-use std::borrow::{Borrow, BorrowMut};
-
 use crate::algorithms::algorithm::OptimizationAlgorithm;
 use crate::algorithms::types::Solution;
 
@@ -88,6 +86,7 @@ impl AntColonyAlgorithm {
             colony,
             matrix,
             pheromone_matrix,
+            solutions: Vec::new(),
         }
     }
 
