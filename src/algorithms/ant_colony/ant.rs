@@ -1,6 +1,5 @@
 use super::types::City;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::{Rng, thread_rng};
 
 #[derive(Debug, Clone)]
 pub struct Ant {
@@ -8,9 +7,9 @@ pub struct Ant {
 }
 
 impl Ant {
-    pub fn new(cities_count: &usize) -> Self {
-        let mut path: Vec<City> = (0..*cities_count).collect();
-        path.shuffle(&mut thread_rng());
+    pub fn new(cities_count: usize) -> Self {
+        let mut rng = thread_rng();
+        let path: Vec<City> = vec![rng.gen_range(0..cities_count), ];
 
         Self { path }
     }

@@ -6,7 +6,8 @@ pub enum Purpose {
     Max,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Solution {
     pub path: Vec<City>,
     pub distance: f64,

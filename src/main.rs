@@ -2,6 +2,7 @@ mod algorithms;
 mod problems;
 
 use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
+use algorithms::algorithm::OptimizationAlgorithm;
 
 fn main() {
     let algo = AntColonyAlgorithmBuilder::new(
@@ -21,5 +22,6 @@ fn main() {
         .iters_count(1000)
         .build();
 
-    println!("{:?}", algo);
+    let solutions = algo.run();
+    println!("{:?}", solutions);
 }
