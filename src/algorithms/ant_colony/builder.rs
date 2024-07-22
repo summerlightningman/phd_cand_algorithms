@@ -1,10 +1,12 @@
 use super::algorithm::AntColonyAlgorithm;
 use super::types::Matrix;
+use crate::problems::travelling_salesman::types::Actor;
 
 pub struct AntColonyAlgorithmBuilder {
     actors_count: usize,
     iters_count: usize,
     solutions_count: usize,
+    actors_list: Vec<Actor>,
     alpha: f64,
     beta: f64,
     q: f64,
@@ -19,6 +21,7 @@ impl AntColonyAlgorithmBuilder {
             iters_count: 100,
             solutions_count: 3,
             actors_count: 50,
+            actors_list: Vec::new(),
             alpha: 1.0,
             beta: 1.0,
             q: 1.0,
@@ -38,6 +41,11 @@ impl AntColonyAlgorithmBuilder {
 
     pub fn actors_count(mut self, count: usize) -> Self {
         self.actors_count = count;
+        self
+    }
+
+    pub fn actors_list(mut self, list: Vec<Actor>) -> Self {
+        self.actors_list = list;
         self
     }
 
@@ -66,6 +74,7 @@ impl AntColonyAlgorithmBuilder {
             self.iters_count,
             self.solutions_count,
             self.actors_count,
+            self.actors_list,
             self.alpha,
             self.beta,
             self.q,

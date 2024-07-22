@@ -2,7 +2,7 @@ use super::types::City;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ant {
     pub path: Vec<City>,
 }

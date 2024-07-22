@@ -1,10 +1,10 @@
+use crate::problems::travelling_salesman::types::{City};
+
 #[derive(Clone, Copy)]
 pub enum Purpose {
     Min,
     Max,
 }
-
-pub type City = usize;
 
 #[derive(Debug)]
 pub struct Solution {
