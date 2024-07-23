@@ -1,7 +1,8 @@
 use super::individual::Individual;
 use super::helpers;
-use rand::{Rng};
-use crate::algorithms::genetic::helpers::generate_two_points;
+use rand::{Rng, thread_rng, seq::IteratorRandom};
+use crate::algorithms::genetic::helpers::{generate_two_points, get_count_by_rate, get_probabilities, weighted_random_sampling};
+use crate::algorithms::genetic::types::Population;
 
 struct Crossover;
 struct Select;
@@ -112,6 +113,25 @@ impl Mutate {
 
             value_new[left..right].reverse();
             value_new
+        }
+    }
+}
+
+const RATE_DEFAULT: f32 = 0.7;
+impl Select {
+    fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>) -> Population<T> {
+        move |population: Population<T>| {
+            let count = get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            let probabilities = get_probabilities(&population);
+            weighted_random_sampling(&population, probabilities, count)
+        }
+    }
+
+    fn stochastic<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>) -> Population<T> {
+        move |population: Population<T>| {
+            let count = get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            let mut rng = thread_rng();
+            population.into_iter().choose_multiple(&mut rng, count)
         }
     }
 }

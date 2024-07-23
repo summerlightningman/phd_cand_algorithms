@@ -1,5 +1,8 @@
+use std::cmp::Ordering;
 use rand::{Rng, thread_rng};
+use rand::distributions::{WeightedIndex};
 use crate::algorithms::genetic::individual::Individual;
+use crate::algorithms::types::Purpose;
 
 pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>, Option<usize>)) -> (usize, usize) {
     let mut rnd = thread_rng();
@@ -21,14 +24,14 @@ pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>,
     }
 }
 
-pub fn get_probabilities<T>(population: &Vec<Individual<T>>) -> Vec<f64> {
+pub fn get_probabilities<T>(population: &Vec<Individual<T>>) -> Vec<f32> {
     let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
     return population.iter().filter_map(|ind| ind.fitness).map(|fitness| fitness / fitness_sum).collect()
 }
 
-pub fn get_count_by_rate<T>(population: &Vec<Individual<T>>, rate: f64) -> f64 {
-    let count = (population.len() as f64) * rate;
-    return count.round()
+pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
+    let count = (population_len as f32) * rate;
+    return count.round() as usize
 }
 
 pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize, usize) {
@@ -60,5 +63,40 @@ pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize,
         (a, b)
     } else {
         (b, a)
+    }
+}
+
+pub fn weighted_random_sampling<T>(items: &Vec<T>, weights: Vec<f32>, k: usize) -> Vec<T> {
+    let mut rng = thread_rng();
+    let mut dist = WeightedIndex::new(weights).unwrap();
+
+    (0..k).map(|_| {
+        let index = dist.sample(&mut rng);
+        items[index].clone()
+    }).collect()
+}
+
+
+
+pub fn compare_by_fitness<T>(purpose: Purpose) -> impl Fn(&Individual<T>, &Individual<T>) -> Ordering {
+    let stub = match purpose {
+        Purpose::Min => Ordering::Greater,
+        Purpose::Max => Ordering::Less,
+    };
+
+    return move |a: Individual<T>, b: Individual<T>| -> Ordering {
+        let a_fitness = match a.fitness {
+            Some(fit) => fit,
+            None => return stub,
+        };
+        let b_fitness = match a.fitness {
+            Some(fit) => fit,
+            None => return stub
+        };
+
+        match purpose {
+            Purpose::Min => a_fitness.partial_cmp(&b_fitness).unwrap(),
+            Purpose::Max => b_fitness.partial_cmp(&a_fitness).unwrap()
+        }
     }
 }

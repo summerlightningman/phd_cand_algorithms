@@ -2,6 +2,7 @@ use crate::algorithms::genetic::individual::Individual;
 use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFunc, GenerateFunc, MutateFunc, Population, SelectFunc};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
+use crate::algorithms::types::Purpose;
 
 pub struct GeneticAlgorithm<T> {
     pub fitness_func: FitnessFunc<T>,
@@ -13,6 +14,7 @@ pub struct GeneticAlgorithm<T> {
     pub mutate_func: MutateFunc<T>,
     pub select_func: SelectFunc<T>,
     pub generate_func: GenerateFunc<T>,
+    pub purpose: Purpose,
 }
 
 impl<T: std::fmt::Debug + std::clone::Clone> GeneticAlgorithm<T> {

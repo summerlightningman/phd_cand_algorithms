@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Individual<T> {
     pub value: Vec<T>,
     pub fitness: Option<f64>,

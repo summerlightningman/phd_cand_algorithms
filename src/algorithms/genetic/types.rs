@@ -7,3 +7,4 @@ pub type SelectFunc<T> = fn(Vec<Individual<T>>) -> Vec<Individual<T>>;
 pub type GenerateFunc<T> = fn() -> Vec<Vec<T>>;
 
 pub type Population<T> = Vec<Individual<T>>;
+
