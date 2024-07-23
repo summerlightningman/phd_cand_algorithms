@@ -1,16 +1,18 @@
-use super::types::{FitnessFunc, CrossoverFunc, MutateFunc, SelectFunc};
+use super::types::{FitnessFunc, CrossoverFunc, MutateFunc, SelectFunc, GenerateFunc};
+use super::algorithm::GeneticAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 
 struct GeneticAlgorithmBuilder<T> {
     fitness_func: FitnessFunc<T>,
-    actors_count: u64,
+    actors_count: usize,
     iters_count: u64,
     solutions_count: u64,
     p_mutation: f32,
     crossover_func: CrossoverFunc<T>,
     mutate_func: MutateFunc<T>,
     select_func: SelectFunc<T>,
+    generate_func: GenerateFunc<T>,
 }
 
 impl<T> OptimizationAlgorithmBuilder for GeneticAlgorithmBuilder<T> {
@@ -19,7 +21,7 @@ impl<T> OptimizationAlgorithmBuilder for GeneticAlgorithmBuilder<T> {
         self
     }
 
-    fn actors_count(mut self, actors_count: u64) -> Self {
+    fn actors_count(mut self, actors_count: usize) -> Self {
         self.actors_count = actors_count;
         self
     }
@@ -35,7 +37,8 @@ impl<T> GeneticAlgorithmBuilder<T> {
         fitness_func: FitnessFunc<T>,
         crossover_func: CrossoverFunc<T>,
         mutate_func: MutateFunc<T>,
-        select_func: SelectFunc<T>
+        select_func: SelectFunc<T>,
+        generate_func: GenerateFunc<T>
     ) -> Self {
         Self {
             solutions_count: SOLUTIONS_COUNT,
@@ -46,6 +49,7 @@ impl<T> GeneticAlgorithmBuilder<T> {
             crossover_func,
             mutate_func,
             select_func,
+            generate_func
         }
     }
 
@@ -55,6 +59,20 @@ impl<T> GeneticAlgorithmBuilder<T> {
             self
         } else {
             panic!("Value must be 0 <= p_mutation < 1")
+        }
+    }
+
+    fn build(self) -> GeneticAlgorithm<T> {
+        GeneticAlgorithm {
+            fitness_func: self.fitness_func,
+            actors_count: self.actors_count,
+            iters_count: self.iters_count,
+            solutions_count: self.solutions_count,
+            p_mutation: self.p_mutation,
+            crossover_func: self.crossover_func,
+            mutate_func: self.mutate_func,
+            select_func: self.select_func,
+            generate_func: self.generate_func,
         }
     }
 }
