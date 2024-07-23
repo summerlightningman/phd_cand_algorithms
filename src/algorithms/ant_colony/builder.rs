@@ -16,6 +16,11 @@ pub struct AntColonyAlgorithmBuilder {
 #[allow(dead_code)]
 impl AntColonyAlgorithmBuilder {
     pub fn new(matrix: Matrix) -> Self {
+
+        if matrix.len() != (matrix.iter().map(|row| row.len()).sum::<usize>() / matrix.len()) {
+            panic!("Matrix is not squared")
+        }
+
         Self {
             matrix,
             iters_count: 100,

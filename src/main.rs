@@ -3,6 +3,7 @@ mod problems;
 
 use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
+use std::time::{Instant};
 
 fn main() {
     let algo = AntColonyAlgorithmBuilder::new(
@@ -22,6 +23,9 @@ fn main() {
         .iters_count(1000)
         .build();
 
+    let time_start = Instant::now();
     let solutions = algo.run();
-    println!("{:?}", solutions);
+    let d_time = time_start.elapsed();
+    println!("{:?}", d_time);
+    println!("{:?}", solutions.unwrap());
 }

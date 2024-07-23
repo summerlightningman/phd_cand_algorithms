@@ -17,7 +17,6 @@ pub struct AntColonyAlgorithm {
     p: f64,
     matrix: Matrix,
     colony: Vec<Ant>,
-    solutions: Vec<Solution>,
 }
 
 impl OptimizationAlgorithm for AntColonyAlgorithm {
@@ -33,7 +32,7 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
             for ant in colony.iter_mut() {
                 let mut distance: f64 = 0.;
 
-                for _ in 0..cities_count {
+                for _ in 0..cities_count - 1 {
                     let probabilities = self.get_probabilities_list(&ant, &mut pheromone_matrix)?;
                     let city = self.select_city(probabilities)?;
                     ant.go_to(city);
@@ -59,7 +58,7 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
             self.vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
         }
 
-        Ok(self.solutions.clone())
+        Ok(solutions.clone())
     }
 }
 
@@ -86,7 +85,6 @@ impl AntColonyAlgorithm {
             p,
             colony,
             matrix,
-            solutions: Vec::new(),
         }
     }
 
@@ -116,19 +114,19 @@ impl AntColonyAlgorithm {
     }
 
     fn get_ant_preferences(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Vec<f64> {
-        let get_ant_preference_to = |city: &City| -> f64 {
+        let get_ant_preference_to = |city: City| -> f64 {
             if ant.path.contains(&city) {
                 return 0.;
             }
 
             let visibility = self.get_ant_visibility(&ant, &city);
-            let pheromone = pheromone_matrix[ant.current_city()][*city];
+            let pheromone = pheromone_matrix[ant.current_city()][city];
 
             visibility.powf(self.alpha) * pheromone.powf(self.beta)
         };
 
         self.cities_list()
-            .iter()
+            .into_iter()
             .map(get_ant_preference_to)
             .collect()
     }
@@ -140,14 +138,16 @@ impl AntColonyAlgorithm {
         if cities_preferences_sum == 0. {
             Err("Error calculating")
         } else {
-            Ok(self
-                .cities_list()
-                .iter()
-                .map(|city: &City| {
-                    let city_preference = cities_preferences[*city];
-                    city_preference / cities_preferences_sum
-                })
-                .collect())
+            Ok(
+                self
+                    .cities_list()
+                    .iter()
+                    .map(|city: &City| {
+                        let city_preference = cities_preferences[*city];
+                        city_preference / cities_preferences_sum
+                    })
+                    .collect()
+            )
         }
     }
 
