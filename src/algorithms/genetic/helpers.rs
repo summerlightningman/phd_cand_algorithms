@@ -30,3 +30,35 @@ pub fn get_count_by_rate<T>(population: &Vec<Individual<T>>, rate: f64) -> f64 {
     let count = (population.len() as f64) * rate;
     return count.round()
 }
+
+pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize, usize) {
+    let offset = match offset_ {
+        Some(o) => o,
+        None => {
+            let mut rng = thread_rng();
+            rng.gen_range(0..seq_length - 1)
+        }
+    };
+
+    if seq_length - 1 < offset {
+        return generate_two_points(Some(seq_length / 2), seq_length)
+    }
+
+    let mut rng = thread_rng();
+    let mut a = rng.gen_range(0..seq_length - 1);
+
+    let b = if a + offset < seq_length {
+        a + offset
+    } else if a - offset >= 0 {
+        a - offset
+    } else {
+        a = seq_length - 1;
+        a - offset
+    };
+
+    if a < b {
+        (a, b)
+    } else {
+        (b, a)
+    }
+}
