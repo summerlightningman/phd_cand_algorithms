@@ -10,13 +10,13 @@ use random_choice::random_choice;
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
     iters_count: usize,
+    actors_count: usize,
     solutions_count: usize,
     alpha: f64,
     beta: f64,
     q: f64,
     p: f64,
     matrix: Matrix,
-    colony: Vec<Ant>,
 }
 
 impl OptimizationAlgorithm for AntColonyAlgorithm {
@@ -24,10 +24,10 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
         let cities_count = self.cities_count();
         let mut pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
         let mut solutions: Vec<Solution> = Vec::new();
+        let mut colony: Vec<Ant> = (0..self.actors_count).map(|_| Ant::new(cities_count)).collect();
 
         for _ in 1..=self.iters_count {
             let mut iter_pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
-            let mut colony = self.colony.clone();
 
             for ant in colony.iter_mut() {
                 let mut distance: f64 = 0.;
@@ -73,17 +73,14 @@ impl AntColonyAlgorithm {
         p: f64,
         matrix: Matrix,
     ) -> Self {
-        let cities_count = matrix.len();
-        let colony = (0..actors_count).map(|_| Ant::new(cities_count)).collect();
-
         Self {
             iters_count,
+            actors_count,
             solutions_count,
             alpha,
             beta,
             q,
             p,
-            colony,
             matrix,
         }
     }
