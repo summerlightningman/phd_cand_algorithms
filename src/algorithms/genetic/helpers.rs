@@ -3,6 +3,7 @@ use rand::{Rng, thread_rng};
 use rand::distributions::{WeightedIndex};
 use crate::algorithms::genetic::individual::Individual;
 use crate::algorithms::types::Purpose;
+use rand::distributions::Distribution;
 
 pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>, Option<usize>)) -> (usize, usize) {
     let mut rnd = thread_rng();
@@ -26,7 +27,7 @@ pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>,
 
 pub fn get_probabilities<T>(population: &Vec<Individual<T>>) -> Vec<f32> {
     let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
-    return population.iter().filter_map(|ind| ind.fitness).map(|fitness| fitness / fitness_sum).collect()
+    return population.iter().filter_map(|ind| ind.fitness).map(|fitness| (fitness / fitness_sum) as f32).collect()
 }
 
 pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
@@ -66,7 +67,7 @@ pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize,
     }
 }
 
-pub fn weighted_random_sampling<T>(items: &Vec<T>, weights: Vec<f32>, k: usize) -> Vec<T> {
+pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: usize) -> Vec<T> {
     let mut rng = thread_rng();
     let mut dist = WeightedIndex::new(weights).unwrap();
 
@@ -84,7 +85,7 @@ pub fn compare_by_fitness<T>(purpose: Purpose) -> impl Fn(&Individual<T>, &Indiv
         Purpose::Max => Ordering::Less,
     };
 
-    return move |a: Individual<T>, b: Individual<T>| -> Ordering {
+    return move |a: &Individual<T>, b: &Individual<T>| -> Ordering {
         let a_fitness = match a.fitness {
             Some(fit) => fit,
             None => return stub,

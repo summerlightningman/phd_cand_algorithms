@@ -2,6 +2,7 @@ use super::types::{FitnessFunc, CrossoverFunc, MutateFunc, SelectFunc, GenerateF
 use super::algorithm::GeneticAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
+use crate::algorithms::types::Purpose;
 
 struct GeneticAlgorithmBuilder<T> {
     fitness_func: FitnessFunc<T>,
@@ -13,6 +14,7 @@ struct GeneticAlgorithmBuilder<T> {
     mutate_func: MutateFunc<T>,
     select_func: SelectFunc<T>,
     generate_func: GenerateFunc<T>,
+    purpose: Purpose,
 }
 
 impl<T> OptimizationAlgorithmBuilder for GeneticAlgorithmBuilder<T> {
@@ -38,13 +40,14 @@ impl<T> GeneticAlgorithmBuilder<T> {
         crossover_func: CrossoverFunc<T>,
         mutate_func: MutateFunc<T>,
         select_func: SelectFunc<T>,
-        generate_func: GenerateFunc<T>
+        generate_func: GenerateFunc<T>,
     ) -> Self {
         Self {
             solutions_count: SOLUTIONS_COUNT,
             actors_count: ACTORS_COUNT,
             iters_count: ITERS_COUNT,
             p_mutation: 0.3,
+            purpose: Purpose::Min,
             fitness_func,
             crossover_func,
             mutate_func,
@@ -62,6 +65,11 @@ impl<T> GeneticAlgorithmBuilder<T> {
         }
     }
 
+    fn purpose(mut self, purpose: Purpose) -> Self {
+        self.purpose = purpose;
+        self
+    }
+
     fn build(self) -> GeneticAlgorithm<T> {
         GeneticAlgorithm {
             fitness_func: self.fitness_func,
@@ -73,6 +81,7 @@ impl<T> GeneticAlgorithmBuilder<T> {
             mutate_func: self.mutate_func,
             select_func: self.select_func,
             generate_func: self.generate_func,
+            purpose: self.purpose,
         }
     }
 }
