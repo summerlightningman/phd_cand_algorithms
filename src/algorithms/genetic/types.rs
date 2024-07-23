@@ -1,0 +1,1 @@
+pub type FitnessFunc<T> = fn(Vec<T>) -> f64;
