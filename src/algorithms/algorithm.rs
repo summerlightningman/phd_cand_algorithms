@@ -5,7 +5,7 @@ pub trait OptimizationAlgorithm {
 }
 
 pub trait OptimizationAlgorithmBuilder {
-    fn iters_count(mut self, iters_count: u64) -> Self;
-    fn actors_count(mut self, actors_count: u64) -> Self;
-    fn solutions_count(mut self, solutions_count: u64) -> Self;
+    fn iters_count(self, iters_count: u64) -> Self;
+    fn actors_count(self, actors_count: u64) -> Self;
+    fn solutions_count(self, solutions_count: u64) -> Self;
 }
