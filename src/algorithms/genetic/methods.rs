@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::ops::Deref;
 use super::individual::Individual;
 use super::helpers;
 use rand::{Rng, thread_rng, seq::IteratorRandom};
@@ -144,16 +143,6 @@ impl Select {
         }
     }
 
-    fn ranged<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        move |mut population: Population<T>, purpose: &Purpose| {
-            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            population.sort_by(helpers::compare_by_fitness(purpose));
-            let ranks_sum = (1..=population.len()).sum::<usize>();
-            let ranks_probabilities = (1..=population.len()).map(|num| num as f32 / ranks_sum as f32).collect();
-            helpers::weighted_random_sampling(&population, ranks_probabilities, count)
-        }
-    }
-
     fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
         let compare = |ordering_if_none: Ordering| {
             move |ind_a: &Individual<T>, ind_b: &Individual<T>| {
@@ -190,6 +179,15 @@ impl Select {
             }
 
             population_new
+        }
+    }
+
+    fn best_n<T: Clone>(rate: Option<f32>)-> impl Fn(Population<T>, &Purpose) -> Population<T> {
+        move |mut population: Population<T>, purpose: &Purpose| {
+            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            population.sort_by_key(helpers::compare_by_fitness(purpose));
+            population.truncate(count);
+            population
         }
     }
 }
