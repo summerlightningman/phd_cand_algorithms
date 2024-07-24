@@ -64,7 +64,7 @@ pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize,
 
 pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: usize) -> Vec<T> {
     let mut rng = thread_rng();
-    let mut dist = WeightedIndex::new(weights).unwrap();
+    let dist = WeightedIndex::new(weights).unwrap();
 
     (0..k).map(|_| {
         let index = dist.sample(&mut rng);
@@ -85,7 +85,7 @@ pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Individual<T>, &Indi
             Some(fit) => fit,
             None => return stub,
         };
-        let b_fitness = match a.fitness {
+        let b_fitness = match b.fitness {
             Some(fit) => fit,
             None => return stub
         };

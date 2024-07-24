@@ -126,7 +126,11 @@ impl Select {
             let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
             let probabilities: Vec<f32> = population.iter().map(|ind| {
                 if let Some(fitness) = ind.fitness {
-                    (fitness / fitness_sum) as f32
+                    return if let Purpose::Min = purpose {
+                        (1. - fitness / fitness_sum) as f32
+                    } else {
+                        (fitness / fitness_sum) as f32
+                    }
                 } else {
                     0.
                 }
@@ -161,7 +165,7 @@ impl Select {
             }
         };
 
-        move |mut population: Population<T>, purpose: &Purpose| {
+        move |population: Population<T>, purpose: &Purpose| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             let mut rng = thread_rng();
             let mut population_new: Population<T> = Vec::new();
@@ -185,7 +189,7 @@ impl Select {
     fn best_n<T: Clone>(rate: Option<f32>)-> impl Fn(Population<T>, &Purpose) -> Population<T> {
         move |mut population: Population<T>, purpose: &Purpose| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            population.sort_by_key(helpers::compare_by_fitness(purpose));
+            population.sort_by(helpers::compare_by_fitness(purpose));
             population.truncate(count);
             population
         }

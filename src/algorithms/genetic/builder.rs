@@ -4,7 +4,7 @@ use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::types::Purpose;
 
-struct GeneticAlgorithmBuilder<T> {
+pub struct GeneticAlgorithmBuilder<T> {
     fitness_func: FitnessFunc<T>,
     actors_count: usize,
     iters_count: u64,

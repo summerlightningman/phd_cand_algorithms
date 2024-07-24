@@ -43,9 +43,9 @@ impl<T: std::fmt::Debug + std::clone::Clone> GeneticAlgorithm<T> {
                     .into_iter()
                     .map(|ind: Individual<T>| {
                         let value = if rng.gen::<f32>() < self.p_mutation {
-                            (self.mutate_func)(&individual.value)
+                            (self.mutate_func)(&ind.value)
                         } else {
-                            individual.value.clone()
+                            ind.value
                         };
 
                         Individual {

@@ -4,28 +4,32 @@ mod problems;
 use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
+use algorithms::genetic::builder::GeneticAlgorithmBuilder;
 
 fn main() {
-    let algo = AntColonyAlgorithmBuilder::new(
-        vec![
-            vec![0.0, 29.0, 20.0, 21.0, 16.0, 31.0, 100.0, 12.0, 4.0, 31.0],
-            vec![29.0, 0.0, 15.0, 29.0, 28.0, 40.0, 72.0, 21.0, 29.0, 41.0],
-            vec![20.0, 15.0, 0.0, 15.0, 14.0, 25.0, 81.0, 9.0, 23.0, 27.0],
-            vec![21.0, 29.0, 15.0, 0.0, 4.0, 12.0, 92.0, 12.0, 25.0, 13.0],
-            vec![16.0, 28.0, 14.0, 4.0, 0.0, 16.0, 94.0, 9.0, 20.0, 16.0],
-            vec![31.0, 40.0, 25.0, 12.0, 16.0, 0.0, 95.0, 24.0, 36.0, 3.0],
-            vec![100.0, 72.0, 81.0, 92.0, 94.0, 95.0, 0.0, 90.0, 101.0, 99.0],
-            vec![12.0, 21.0, 9.0, 12.0, 9.0, 24.0, 90.0, 0.0, 15.0, 25.0],
-            vec![4.0, 29.0, 23.0, 25.0, 20.0, 36.0, 101.0, 15.0, 0.0, 35.0],
-            vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
-        ]
-    )
+    let matrix = vec![
+        vec![0.0, 29.0, 20.0, 21.0, 16.0, 31.0, 100.0, 12.0, 4.0, 31.0],
+        vec![29.0, 0.0, 15.0, 29.0, 28.0, 40.0, 72.0, 21.0, 29.0, 41.0],
+        vec![20.0, 15.0, 0.0, 15.0, 14.0, 25.0, 81.0, 9.0, 23.0, 27.0],
+        vec![21.0, 29.0, 15.0, 0.0, 4.0, 12.0, 92.0, 12.0, 25.0, 13.0],
+        vec![16.0, 28.0, 14.0, 4.0, 0.0, 16.0, 94.0, 9.0, 20.0, 16.0],
+        vec![31.0, 40.0, 25.0, 12.0, 16.0, 0.0, 95.0, 24.0, 36.0, 3.0],
+        vec![100.0, 72.0, 81.0, 92.0, 94.0, 95.0, 0.0, 90.0, 101.0, 99.0],
+        vec![12.0, 21.0, 9.0, 12.0, 9.0, 24.0, 90.0, 0.0, 15.0, 25.0],
+        vec![4.0, 29.0, 23.0, 25.0, 20.0, 36.0, 101.0, 15.0, 0.0, 35.0],
+        vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
+    ];
+
+    let ac = AntColonyAlgorithmBuilder::new(matrix)
         .iters_count(1000)
         .build();
 
-    let time_start = Instant::now();
-    let solutions = algo.run();
-    let d_time = time_start.elapsed();
-    println!("{:?}", d_time);
-    println!("{:?}", solutions.unwrap());
+    let ac_time_start = Instant::now();
+    let ac_solutions = ac.run();
+    let ac_d_time = ac_time_start.elapsed();
+
+    println!("{:?}", ac_d_time);
+    println!("{:?}", ac_solutions.unwrap());
+
+    
 }
