@@ -1,8 +1,10 @@
+use std::cmp::Ordering;
+use std::ops::Deref;
 use super::individual::Individual;
 use super::helpers;
 use rand::{Rng, thread_rng, seq::IteratorRandom};
-use crate::algorithms::genetic::helpers::{generate_two_points, get_count_by_rate, get_probabilities, weighted_random_sampling};
 use crate::algorithms::genetic::types::Population;
+use crate::algorithms::types::Purpose;
 
 struct Crossover;
 struct Select;
@@ -31,7 +33,7 @@ impl Crossover {
                 Individual::new(values_left, None),
                 Individual::new(values_right, None)
             )
-        }
+        };
     }
 
     fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>) -> (Individual<T>, Individual<T>) {
@@ -51,7 +53,7 @@ impl Crossover {
                 Individual::new(values_left, None),
                 Individual::new(values_right, None),
             )
-        }
+        };
     }
 
     fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>) -> (Individual<T>, Individual<T>) {
@@ -72,7 +74,7 @@ impl Crossover {
             let mut arr_idx = 0;
             loop {
                 if arr.iter().all(|el| el.is_some()) {
-                    break
+                    break;
                 }
                 // if arr.contains(Some(*ind.value[arr_idx])) {
                 if arr.iter().flatten().any(|el| ind.value[arr_idx] == *el) {
@@ -98,7 +100,7 @@ impl Crossover {
 impl Mutate {
     fn swap_indexes<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(&Vec<T>) -> Vec<T> {
         move |value| {
-            let (left, right) = generate_two_points(offset, value.len());
+            let (left, right) = helpers::generate_two_points(offset, value.len());
             let mut value_new = value.to_vec();
 
             value_new.swap(left, right);
@@ -108,7 +110,7 @@ impl Mutate {
 
     fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(&Vec<T>) -> Vec<T> {
         move |value| {
-            let (left, right) = generate_two_points(offset, value.len());
+            let (left, right) = helpers::generate_two_points(offset, value.len());
             let mut value_new = value.to_vec();
 
             value_new[left..right].reverse();
@@ -119,19 +121,75 @@ impl Mutate {
 
 const RATE_DEFAULT: f32 = 0.7;
 impl Select {
-    fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>) -> Population<T> {
-        move |population: Population<T>| {
-            let count = get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            let probabilities = get_probabilities(&population);
-            weighted_random_sampling(&population, probabilities, count)
+    fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
+        move |population: Population<T>, purpose: &Purpose| {
+            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
+            let probabilities: Vec<f32> = population.iter().map(|ind| {
+                if let Some(fitness) = ind.fitness {
+                    (fitness / fitness_sum) as f32
+                } else {
+                    0.
+                }
+            }).collect();
+            helpers::weighted_random_sampling(&population, probabilities, count)
         }
     }
 
-    fn stochastic<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>) -> Population<T> {
-        move |population: Population<T>| {
-            let count = get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+    fn stochastic<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
+        move |population: Population<T>, _: &Purpose| {
+            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             let mut rng = thread_rng();
             population.into_iter().choose_multiple(&mut rng, count)
+        }
+    }
+
+    fn ranged<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
+        move |mut population: Population<T>, purpose: &Purpose| {
+            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            population.sort_by(helpers::compare_by_fitness(purpose));
+            let ranks_sum = (1..=population.len()).sum::<usize>();
+            let ranks_probabilities = (1..=population.len()).map(|num| num as f32 / ranks_sum as f32).collect();
+            helpers::weighted_random_sampling(&population, ranks_probabilities, count)
+        }
+    }
+
+    fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
+        let compare = |ordering_if_none: Ordering| {
+            move |ind_a: &Individual<T>, ind_b: &Individual<T>| {
+                let fitness_a = ind_a.fitness.unwrap_or_else(|| match ordering_if_none {
+                    Ordering::Less => f64::NEG_INFINITY,
+                    Ordering::Greater => f64::INFINITY,
+                    _ => unreachable!(),
+                });
+                let fitness_b = ind_b.fitness.unwrap_or_else(|| match ordering_if_none {
+                    Ordering::Less => f64::NEG_INFINITY,
+                    Ordering::Greater => f64::INFINITY,
+                    _ => unreachable!(),
+                });
+
+                fitness_a.partial_cmp(&fitness_b).unwrap()
+            }
+        };
+
+        move |mut population: Population<T>, purpose: &Purpose| {
+            let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
+            let mut rng = thread_rng();
+            let mut population_new: Population<T> = Vec::new();
+
+            for _ in 0..count {
+                let candidates: Vec<Individual<T>> = population.iter().choose_multiple(&mut rng, size).into_iter().cloned().collect();
+                let winner = match purpose {
+                    Purpose::Min => candidates.into_iter().min_by(compare(Ordering::Greater)),
+                    Purpose::Max => candidates.into_iter().max_by(compare(Ordering::Less)),
+                };
+
+                if let Some(winner) = winner {
+                    population_new.push(winner);
+                }
+            }
+
+            population_new
         }
     }
 }

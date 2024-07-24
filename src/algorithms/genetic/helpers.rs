@@ -25,11 +25,6 @@ pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>,
     }
 }
 
-pub fn get_probabilities<T>(population: &Vec<Individual<T>>) -> Vec<f32> {
-    let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
-    return population.iter().filter_map(|ind| ind.fitness).map(|fitness| (fitness / fitness_sum) as f32).collect()
-}
-
 pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
     let count = (population_len as f32) * rate;
     return count.round() as usize
@@ -79,7 +74,7 @@ pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: 
 
 
 
-pub fn compare_by_fitness<T>(purpose: Purpose) -> impl Fn(&Individual<T>, &Individual<T>) -> Ordering {
+pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Individual<T>, &Individual<T>) -> Ordering + '_ {
     let stub = match purpose {
         Purpose::Min => Ordering::Greater,
         Purpose::Max => Ordering::Less,
@@ -95,7 +90,7 @@ pub fn compare_by_fitness<T>(purpose: Purpose) -> impl Fn(&Individual<T>, &Indiv
             None => return stub
         };
 
-        match purpose {
+        return match purpose {
             Purpose::Min => a_fitness.partial_cmp(&b_fitness).unwrap(),
             Purpose::Max => b_fitness.partial_cmp(&a_fitness).unwrap()
         }
