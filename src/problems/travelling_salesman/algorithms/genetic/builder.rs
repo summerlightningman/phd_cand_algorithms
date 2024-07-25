@@ -6,7 +6,7 @@ use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFunc, GenerateFunc
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
 use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{thread_rng};
 use crate::algorithms::types::Purpose;
 
 pub struct TSGeneticAlgorithmBuilder {
@@ -20,7 +20,7 @@ pub struct TSGeneticAlgorithmBuilder {
     select_func: SelectFunc<City>,
 }
 
-impl<T> OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
+impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
     fn iters_count(mut self, iters_count: u64) -> Self {
         self.iters_count = iters_count;
         self
@@ -67,17 +67,19 @@ impl TSGeneticAlgorithmBuilder {
 
     fn build(self) -> TSGeneticAlgorithm {
         let fitness_func: FitnessFunc<City> = |cities| {
-            helpers::calculate_distance(&self.matrix, cities)
+            helpers::calculate_distance(&self.matrix, &cities)
         };
 
         let generate_func: GenerateFunc<City> = || -> Individual<City> {
             let cities_count = self.matrix.len();
             let mut rng = thread_rng();
-            (0..cities_count).collect().shuffle(&mut rng);
+            let value = (0..cities_count).collect();
+            value.shuffle(&mut rng);
+            return value
         };
 
         return TSGeneticAlgorithm {
-            matrix,
+            matrix: self.matrix,
             algo: GeneticAlgorithm {
                 fitness_func,
                 generate_func,

@@ -4,7 +4,8 @@ mod problems;
 use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
-use algorithms::genetic::builder::GeneticAlgorithmBuilder;
+use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
+use algorithms::genetic::methods::{Crossover, Mutate, Select};
 
 fn main() {
     let matrix = vec![
@@ -20,7 +21,7 @@ fn main() {
         vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
     ];
 
-    let ac = AntColonyAlgorithmBuilder::new(matrix)
+    let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
         .iters_count(1000)
         .build();
 
@@ -31,5 +32,16 @@ fn main() {
     println!("{:?}", ac_d_time);
     println!("{:?}", ac_solutions.unwrap());
 
-    
+    let ga = TSGeneticAlgorithmBuilder::new(
+        matrix.clone(),
+        Crossover::ordered,
+        Mutate::swap_indexes(Some(3)),
+        Select::tournament(3, Some(0.7)),
+    );
+
+    let ga_time_start = Instant::now();
+    let ga_solutions = ga.run();
+    let ga_d_time = ga_time_start.elapsed();
+
+    println!("{:?}", ga_d_time);
 }

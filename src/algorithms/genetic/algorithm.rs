@@ -19,8 +19,13 @@ pub struct GeneticAlgorithm<T> {
 
 impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
     pub fn run(&self) {
-        let mut population: Population<T> = (self.generate_func)().iter().map(|val: &Vec<T>| {
-            Individual::new(val.to_vec(), Some((self.fitness_func)(val)))
+        let population: Population<T> = (0..self.actors_count).map(|_| {
+            let value = (self.generate_func)();
+            let fitness = (self.fitness_func)(&value);
+            Individual {
+                value: value,
+                fitness: Some(fitness),
+            }
         }).collect();
 
 
