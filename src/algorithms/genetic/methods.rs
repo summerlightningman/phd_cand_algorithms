@@ -80,7 +80,7 @@ impl Crossover {
                     arr_idx = (arr_idx + 1) % arr_len;
                 } else {
                     arr[curr_idx] = Some(ind.value[arr_idx].clone());
-                    curr_idx = (curr_idx + 1) + arr_len;
+                    curr_idx = (curr_idx + 1) % arr_len;
                     arr_idx = (arr_idx + 1) % arr_len
                 }
             }

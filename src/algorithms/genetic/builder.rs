@@ -1,8 +1,9 @@
-use super::types::{FitnessFunc, CrossoverFunc, MutateFunc, SelectFunc, GenerateFunc};
+use super::types::{FitnessFunc, CrossoverFunc, GenerateFunc};
 use super::algorithm::GeneticAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::types::Purpose;
+use crate::algorithms::genetic::types::Population;
 
 pub struct GeneticAlgorithmBuilder<T> {
     fitness_func: FitnessFunc<T>,
@@ -11,8 +12,8 @@ pub struct GeneticAlgorithmBuilder<T> {
     solutions_count: u64,
     p_mutation: f32,
     crossover_func: CrossoverFunc<T>,
-    mutate_func: MutateFunc<T>,
-    select_func: SelectFunc<T>,
+    mutate_func: Box<dyn Fn(&Vec<T>) -> Vec<T>>,
+    select_func: Box<dyn Fn(Population<T>, &Purpose) -> Population<T>>,
     generate_func: GenerateFunc<T>,
     purpose: Purpose,
 }
@@ -34,12 +35,12 @@ impl<T> OptimizationAlgorithmBuilder for GeneticAlgorithmBuilder<T> {
     }
 }
 
-impl<T> GeneticAlgorithmBuilder<T> {
-    fn new(
+impl<T: 'static> GeneticAlgorithmBuilder<T> {
+    pub fn new(
         fitness_func: FitnessFunc<T>,
         crossover_func: CrossoverFunc<T>,
-        mutate_func: MutateFunc<T>,
-        select_func: SelectFunc<T>,
+        mutate_func: impl Fn(&Vec<T>) -> Vec<T> + 'static,
+        select_func: impl Fn(Population<T>, &Purpose) -> Population<T> + 'static,
         generate_func: GenerateFunc<T>,
     ) -> Self {
         Self {
@@ -50,13 +51,13 @@ impl<T> GeneticAlgorithmBuilder<T> {
             purpose: Purpose::Min,
             fitness_func,
             crossover_func,
-            mutate_func,
-            select_func,
+            mutate_func: Box::new(mutate_func),
+            select_func: Box::new(select_func),
             generate_func
         }
     }
 
-    fn p_mutation(mut self, p_mutation: f32) -> Self {
+    pub fn p_mutation(mut self, p_mutation: f32) -> Self {
         if p_mutation < 1. {
             self.p_mutation = p_mutation;
             self
@@ -65,14 +66,15 @@ impl<T> GeneticAlgorithmBuilder<T> {
         }
     }
 
-    fn purpose(mut self, purpose: Purpose) -> Self {
+    pub fn purpose(mut self, purpose: Purpose) -> Self {
         self.purpose = purpose;
         self
     }
 
-    fn build(self) -> GeneticAlgorithm<T> {
+    pub fn build(self) -> GeneticAlgorithm<T> {
         GeneticAlgorithm {
-            fitness_func: self.fitness_func,
+            fitness_func: Box::new(self.fitness_func),
+            generate_func: Box::new(self.generate_func),
             actors_count: self.actors_count,
             iters_count: self.iters_count,
             solutions_count: self.solutions_count,
@@ -80,7 +82,6 @@ impl<T> GeneticAlgorithmBuilder<T> {
             crossover_func: self.crossover_func,
             mutate_func: self.mutate_func,
             select_func: self.select_func,
-            generate_func: self.generate_func,
             purpose: self.purpose,
         }
     }

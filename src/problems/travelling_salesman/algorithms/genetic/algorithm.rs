@@ -8,7 +8,7 @@ pub struct TSGeneticAlgorithm {
 }
 
 impl TSGeneticAlgorithm {
-    fn run(self) {
+    pub fn run(self) {
         self.algo.run()
     }
 }

@@ -1,12 +1,12 @@
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
-use crate::algorithms::genetic::individual::Individual;
-use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFunc, GenerateFunc, MutateFunc, SelectFunc};
+use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
 use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
 use rand::{thread_rng};
+use rand::prelude::SliceRandom;
 use crate::algorithms::types::Purpose;
 
 pub struct TSGeneticAlgorithmBuilder {
@@ -16,8 +16,8 @@ pub struct TSGeneticAlgorithmBuilder {
     solutions_count: u64,
     p_mutation: f32,
     crossover_func: CrossoverFunc<City>,
-    mutate_func: MutateFunc<City>,
-    select_func: SelectFunc<City>,
+    mutate_func: Box<dyn Fn(&Vec<City>) -> Vec<City>>,
+    select_func: Box<dyn Fn(Population<City>, &Purpose) -> Population<City>>,
 }
 
 impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
@@ -38,17 +38,17 @@ impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
 }
 
 impl TSGeneticAlgorithmBuilder {
-    fn new(
+    pub fn new(
         matrix: Matrix,
         crossover_func: CrossoverFunc<City>,
-        mutate_func: MutateFunc<City>,
-        select_func: SelectFunc<City>,
+        mutate_func: impl Fn(&Vec<City>) -> Vec<City> + 'static,
+        select_func: impl Fn(Population<City>, &Purpose) -> Population<City> + 'static,
     ) -> Self {
         Self {
             matrix,
             crossover_func,
-            mutate_func,
-            select_func,
+            mutate_func: Box::new(mutate_func),
+            select_func: Box::new(select_func),
             actors_count: ACTORS_COUNT,
             solutions_count: SOLUTIONS_COUNT,
             iters_count: ITERS_COUNT,
@@ -56,7 +56,7 @@ impl TSGeneticAlgorithmBuilder {
         }
     }
 
-    fn p_mutation(mut self, p_mutation: f32) -> Self {
+    pub fn p_mutation(mut self, p_mutation: f32) -> Self {
         if p_mutation < 1. {
             self.p_mutation = p_mutation;
             self
@@ -65,21 +65,23 @@ impl TSGeneticAlgorithmBuilder {
         }
     }
 
-    fn build(self) -> TSGeneticAlgorithm {
-        let fitness_func: FitnessFunc<City> = |cities| {
+    pub fn build(self) -> TSGeneticAlgorithm {
+        let cities_count = self.matrix.len();
+        let matrix = self.matrix.clone();
+
+        let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| {
             helpers::calculate_distance(&self.matrix, &cities)
-        };
+        });
 
-        let generate_func: GenerateFunc<City> = || -> Individual<City> {
-            let cities_count = self.matrix.len();
+        let generate_func: GenerateFuncRaw<City> = Box::new(move || {
             let mut rng = thread_rng();
-            let value = (0..cities_count).collect();
+            let mut value: Vec<usize> = (0..cities_count).collect();
             value.shuffle(&mut rng);
-            return value
-        };
+            value
+        });
 
-        return TSGeneticAlgorithm {
-            matrix: self.matrix,
+        TSGeneticAlgorithm {
+            matrix,
             algo: GeneticAlgorithm {
                 fitness_func,
                 generate_func,

@@ -37,7 +37,7 @@ fn main() {
         Crossover::ordered,
         Mutate::swap_indexes(Some(3)),
         Select::tournament(3, Some(0.7)),
-    );
+    ).build();
 
     let ga_time_start = Instant::now();
     let ga_solutions = ga.run();

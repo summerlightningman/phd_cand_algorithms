@@ -1,25 +1,25 @@
 use crate::algorithms::genetic::individual::Individual;
-use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFunc, GenerateFunc, MutateFunc, Population, SelectFunc};
+use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
 use crate::algorithms::types::Purpose;
 
 pub struct GeneticAlgorithm<T> {
-    pub fitness_func: FitnessFunc<T>,
+    pub fitness_func: FitnessFuncRaw<T>,
     pub actors_count: usize,
     pub iters_count: u64,
     pub solutions_count: u64,
     pub p_mutation: f32,
     pub crossover_func: CrossoverFunc<T>,
-    pub mutate_func: MutateFunc<T>,
-    pub select_func: SelectFunc<T>,
-    pub generate_func: GenerateFunc<T>,
+    pub mutate_func: Box<dyn Fn(&Vec<T>) -> Vec<T>>,
+    pub select_func: Box<dyn Fn(Population<T>, &Purpose) -> Population<T>>,
+    pub generate_func: GenerateFuncRaw<T>,
     pub purpose: Purpose,
 }
 
 impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
     pub fn run(&self) {
-        let population: Population<T> = (0..self.actors_count).map(|_| {
+        let mut population: Population<T> = (0..self.actors_count).map(|_| {
             let value = (self.generate_func)();
             let fitness = (self.fitness_func)(&value);
             Individual {
@@ -28,16 +28,15 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
             }
         }).collect();
 
-
         for _ in 0..self.iters_count {
             // SELECTION
-            population = (self.select_func)(population);
+            population = (self.select_func)(population, &self.purpose);
             let mut new_population: Population<T> = Vec::new();
 
             // CROSSOVER
             for individual in &population {
                 let panmixia = |ind: &Individual<T>| levenshtein(&format!("{:?}", &individual.value), &format!("{:?}", ind.value));
-                let partner = population.iter().max_by_key(|ind | panmixia(*ind)).unwrap();
+                let partner = population.iter().max_by_key(|ind| panmixia(*ind)).unwrap();
 
                 let (child_1, child_2) = (self.crossover_func)(individual, partner);
                 new_population.push(child_1);
@@ -63,10 +62,13 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
 
             // MUTATION
             population.extend(new_population);
-            population.sort_by(|ind_a, ind_b| ind_b.fitness.partial_cmp(&ind_a.fitness).unwrap());
+            population.sort_by(|ind_a, ind_b| {
+                match self.purpose {
+                    Purpose::Min => ind_a.fitness.partial_cmp(&ind_b.fitness),
+                    Purpose::Max => ind_b.fitness.partial_cmp(&ind_a.fitness),
+                }.unwrap()
+            });
             population.truncate(self.actors_count);
         }
     }
-
-
 }
