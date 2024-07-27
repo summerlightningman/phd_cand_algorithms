@@ -31,29 +31,29 @@ pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
 }
 
 pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize, usize) {
+    if seq_length <= 1 {
+        return (0, 0);
+    }
+
     let offset = match offset_ {
         Some(o) => o,
         None => {
             let mut rng = thread_rng();
-            rng.gen_range(0..seq_length - 1)
+            rng.gen_range(0..seq_length / 2)
         }
     };
 
-    if seq_length - 1 < offset {
-        return generate_two_points(Some(seq_length / 2), seq_length)
-    }
-
     let mut rng = thread_rng();
-    let mut a = rng.gen_range(0..seq_length - 1);
-
-    let b = if a + offset < seq_length {
+    let mut a = rng.gen_range(0..seq_length);
+    let mut b = if rng.gen_bool(0.5) {
         a + offset
-    } else if a - offset >= 0 {
-        a - offset
     } else {
-        a = seq_length - 1;
-        a - offset
+        a.saturating_sub(offset)
     };
+
+    if b >= seq_length {
+        b = seq_length - 1;
+    }
 
     if a < b {
         (a, b)
@@ -91,8 +91,8 @@ pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Individual<T>, &Indi
         };
 
         return match purpose {
-            Purpose::Min => a_fitness.partial_cmp(&b_fitness).unwrap(),
-            Purpose::Max => b_fitness.partial_cmp(&a_fitness).unwrap()
+            Purpose::Min => b_fitness.partial_cmp(&a_fitness).unwrap(),
+            Purpose::Max => a_fitness.partial_cmp(&b_fitness).unwrap()
         }
     }
 }

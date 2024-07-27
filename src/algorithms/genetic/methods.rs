@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use super::individual::Individual;
 use super::helpers;
 use rand::{Rng, thread_rng, seq::IteratorRandom};
@@ -148,23 +147,6 @@ impl Select {
     }
 
     pub fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        let compare = |ordering_if_none: Ordering| {
-            move |ind_a: &Individual<T>, ind_b: &Individual<T>| {
-                let fitness_a = ind_a.fitness.unwrap_or_else(|| match ordering_if_none {
-                    Ordering::Less => f64::NEG_INFINITY,
-                    Ordering::Greater => f64::INFINITY,
-                    _ => unreachable!(),
-                });
-                let fitness_b = ind_b.fitness.unwrap_or_else(|| match ordering_if_none {
-                    Ordering::Less => f64::NEG_INFINITY,
-                    Ordering::Greater => f64::INFINITY,
-                    _ => unreachable!(),
-                });
-
-                fitness_a.partial_cmp(&fitness_b).unwrap()
-            }
-        };
-
         move |population: Population<T>, purpose: &Purpose| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             let mut rng = thread_rng();
@@ -173,8 +155,8 @@ impl Select {
             for _ in 0..count {
                 let candidates: Vec<Individual<T>> = population.iter().choose_multiple(&mut rng, size).into_iter().cloned().collect();
                 let winner = match purpose {
-                    Purpose::Min => candidates.into_iter().min_by(compare(Ordering::Greater)),
-                    Purpose::Max => candidates.into_iter().max_by(compare(Ordering::Less)),
+                    Purpose::Min => candidates.into_iter().min_by(helpers::compare_by_fitness(purpose)),
+                    Purpose::Max => candidates.into_iter().max_by(helpers::compare_by_fitness(purpose)),
                 };
 
                 if let Some(winner) = winner {

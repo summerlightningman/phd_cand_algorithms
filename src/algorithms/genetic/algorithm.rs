@@ -2,13 +2,14 @@ use crate::algorithms::genetic::individual::Individual;
 use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
-use crate::algorithms::types::Purpose;
+use crate::algorithms::genetic::helpers::compare_by_fitness;
+use crate::algorithms::types::{Purpose};
 
 pub struct GeneticAlgorithm<T> {
     pub fitness_func: FitnessFuncRaw<T>,
     pub actors_count: usize,
     pub iters_count: u64,
-    pub solutions_count: u64,
+    pub solutions_count: usize,
     pub p_mutation: f32,
     pub crossover_func: CrossoverFunc<T>,
     pub mutate_func: Box<dyn Fn(&Vec<T>) -> Vec<T>>,
@@ -18,7 +19,7 @@ pub struct GeneticAlgorithm<T> {
 }
 
 impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
-    pub fn run(&self) {
+    pub fn run(&self) -> Result<Population<T>, &str> {
         let mut population: Population<T> = (0..self.actors_count).map(|_| {
             let value = (self.generate_func)();
             let fitness = (self.fitness_func)(&value);
@@ -62,13 +63,10 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
 
             // MUTATION
             population.extend(new_population);
-            population.sort_by(|ind_a, ind_b| {
-                match self.purpose {
-                    Purpose::Min => ind_a.fitness.partial_cmp(&ind_b.fitness),
-                    Purpose::Max => ind_b.fitness.partial_cmp(&ind_a.fitness),
-                }.unwrap()
-            });
+            population.sort_by(compare_by_fitness(&self.purpose));
             population.truncate(self.actors_count);
         }
+
+        Ok(population)
     }
 }

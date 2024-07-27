@@ -9,7 +9,7 @@ pub struct GeneticAlgorithmBuilder<T> {
     fitness_func: FitnessFunc<T>,
     actors_count: usize,
     iters_count: u64,
-    solutions_count: u64,
+    solutions_count: usize,
     p_mutation: f32,
     crossover_func: CrossoverFunc<T>,
     mutate_func: Box<dyn Fn(&Vec<T>) -> Vec<T>>,
@@ -29,7 +29,7 @@ impl<T> OptimizationAlgorithmBuilder for GeneticAlgorithmBuilder<T> {
         self
     }
 
-    fn solutions_count(mut self, solutions_count: u64) -> Self {
+    fn solutions_count(mut self, solutions_count: usize) -> Self {
         self.solutions_count = solutions_count;
         self
     }

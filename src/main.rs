@@ -40,8 +40,9 @@ fn main() {
     ).build();
 
     let ga_time_start = Instant::now();
-    let ga_solutions = ga.run();
+    let ga_solutions = ga.run().unwrap();
     let ga_d_time = ga_time_start.elapsed();
 
     println!("{:?}", ga_d_time);
+    println!("{:?}", ga_solutions);
 }

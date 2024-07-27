@@ -13,7 +13,7 @@ pub struct TSGeneticAlgorithmBuilder {
     matrix: Matrix,
     actors_count: usize,
     iters_count: u64,
-    solutions_count: u64,
+    solutions_count: usize,
     p_mutation: f32,
     crossover_func: CrossoverFunc<City>,
     mutate_func: Box<dyn Fn(&Vec<City>) -> Vec<City>>,
@@ -31,7 +31,7 @@ impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
         self
     }
 
-    fn solutions_count(mut self, solutions_count: u64) -> Self {
+    fn solutions_count(mut self, solutions_count: usize) -> Self {
         self.solutions_count = solutions_count;
         self
     }
