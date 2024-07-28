@@ -1,12 +1,13 @@
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
-use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
+use crate::algorithms::genetic::types::{FitnessFuncRaw, GenerateFuncRaw, Population};
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
 use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
 use rand::{thread_rng};
 use rand::prelude::SliceRandom;
+use crate::algorithms::genetic::methods::Crossover;
 use crate::algorithms::types::Purpose;
 
 pub struct TSGeneticAlgorithmBuilder {
@@ -15,8 +16,7 @@ pub struct TSGeneticAlgorithmBuilder {
     iters_count: u64,
     solutions_count: usize,
     p_mutation: f32,
-    crossover_func: CrossoverFunc<City>,
-    mutate_func: Box<dyn Fn(&Vec<City>) -> Vec<City>>,
+    mutate_func: Box<dyn Fn(Vec<City>) -> Vec<City>>,
     select_func: Box<dyn Fn(Population<City>, &Purpose) -> Population<City>>,
 }
 
@@ -40,13 +40,11 @@ impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
 impl TSGeneticAlgorithmBuilder {
     pub fn new(
         matrix: Matrix,
-        crossover_func: CrossoverFunc<City>,
-        mutate_func: impl Fn(&Vec<City>) -> Vec<City> + 'static,
+        mutate_func: impl Fn(Vec<City>) -> Vec<City> + 'static,
         select_func: impl Fn(Population<City>, &Purpose) -> Population<City> + 'static,
     ) -> Self {
         Self {
             matrix,
-            crossover_func,
             mutate_func: Box::new(mutate_func),
             select_func: Box::new(select_func),
             actors_count: ACTORS_COUNT,
@@ -90,7 +88,7 @@ impl TSGeneticAlgorithmBuilder {
                 iters_count: self.iters_count,
                 solutions_count: self.solutions_count,
                 p_mutation: self.p_mutation,
-                crossover_func: self.crossover_func,
+                crossover_func: Crossover::ordered,
                 mutate_func: self.mutate_func,
                 select_func: self.select_func,
             }

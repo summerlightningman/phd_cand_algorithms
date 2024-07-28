@@ -5,7 +5,8 @@ use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
 use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
-use algorithms::genetic::methods::{Crossover, Mutate, Select};
+use algorithms::genetic::methods::{Mutate, Select};
+use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 
 fn main() {
     let matrix = vec![
@@ -21,23 +22,22 @@ fn main() {
         vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
     ];
 
-    let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
-        .iters_count(1000)
-        .build();
-
-    let ac_time_start = Instant::now();
-    let ac_solutions = ac.run();
-    let ac_d_time = ac_time_start.elapsed();
-
-    println!("{:?}", ac_d_time);
-    println!("{:?}", ac_solutions.unwrap());
+    // let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
+    //     .iters_count(1000)
+    //     .build();
+    //
+    // let ac_time_start = Instant::now();
+    // let ac_solutions = ac.run();
+    // let ac_d_time = ac_time_start.elapsed();
+    //
+    // println!("{:?}", ac_d_time);
+    // println!("{:?}", ac_solutions.unwrap());
 
     let ga = TSGeneticAlgorithmBuilder::new(
         matrix.clone(),
-        Crossover::ordered,
         Mutate::swap_indexes(Some(3)),
-        Select::tournament(3, Some(0.7)),
-    ).build();
+        Select::best_n(Some(0.7)),
+    ).solutions_count(20).build();
 
     let ga_time_start = Instant::now();
     let ga_solutions = ga.run().unwrap();

@@ -14,22 +14,20 @@ impl Crossover {
             let idx = if let Some(val) = point_idx {
                 val
             } else {
-                let mut rng = rand::thread_rng();
+                let mut rng = thread_rng();
                 rng.gen_range(0..a.value.len() - 1)
             };
 
-            let mut values_left: Vec<T> = Vec::new();
-            values_left.extend_from_slice(&a.value[..idx]);
-            values_left.extend_from_slice(&b.value[idx..]);
+            let ((a_left, a_right), (b_left, b_right)) = (a.value.split_at(idx), b.value.split_at(idx));
+            let mut child_a_value = a_left.to_vec();
+            child_a_value.extend(b_right.to_vec());
 
-            let mut values_right: Vec<T> = Vec::new();
-            values_right.extend_from_slice(&b.value[..idx]);
-            values_right.extend_from_slice(&a.value[idx..]);
-
+            let mut child_b_value = b_left.to_vec();
+            child_b_value.extend(a_right.to_vec());
 
             (
-                Individual::new(values_left, None),
-                Individual::new(values_right, None)
+                Individual::new(child_b_value, None),
+                Individual::new(child_a_value, None)
             )
         };
     }
@@ -96,17 +94,15 @@ impl Crossover {
 }
 
 impl Mutate {
-    pub fn swap_indexes<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(&Vec<T>) -> Vec<T> {
-        move |value| {
+    pub fn swap_indexes<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>) -> Vec<T> {
+        move |mut value| {
             let (left, right) = helpers::generate_two_points(offset, value.len());
-            let mut value_new = value.to_vec();
-
-            value_new.swap(left, right);
-            value_new
+            value.swap(left, right);
+            value
         }
     }
 
-    pub fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(&Vec<T>) -> Vec<T> {
+    pub fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>) -> Vec<T> {
         move |value| {
             let (left, right) = helpers::generate_two_points(offset, value.len());
             let mut value_new = value.to_vec();
