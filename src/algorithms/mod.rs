@@ -4,3 +4,4 @@ pub mod bee_colony;
 pub mod types;
 pub mod genetic;
 pub mod constants;
+mod helpers;

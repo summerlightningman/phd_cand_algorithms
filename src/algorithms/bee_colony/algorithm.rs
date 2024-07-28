@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt::Debug;
 use random_choice::random_choice;
 use crate::algorithms::types::{Purpose};

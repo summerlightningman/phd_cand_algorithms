@@ -2,8 +2,8 @@ use crate::algorithms::genetic::individual::Individual;
 use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
-use crate::algorithms::genetic::helpers::compare_by_fitness;
 use crate::algorithms::types::{Purpose};
+use super::helpers::compare_by_fitness;
 
 pub struct GeneticAlgorithm<T> {
     pub fitness_func: FitnessFuncRaw<T>,
