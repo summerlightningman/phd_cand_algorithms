@@ -2,6 +2,7 @@ use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::bee_colony::types::{FitnessFunc, GenerateFunc, ResearchFuncRaw};
 use crate::algorithms::types::Purpose;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
+use super::algorithm::BeeColonyAlgorithm;
 
 pub struct BeeColonyAlgorithmBuilder<T> {
     pub actors_count: usize,
@@ -31,7 +32,7 @@ impl<T> OptimizationAlgorithmBuilder for BeeColonyAlgorithmBuilder<T> {
     }
 }
 
-impl<T> BeeColonyAlgorithmBuilder<T> {
+impl<T: 'static> BeeColonyAlgorithmBuilder<T> {
     pub fn new(
         fitness_func: FitnessFunc<T>,
         generate_func: GenerateFunc<T>,
@@ -60,5 +61,18 @@ impl<T> BeeColonyAlgorithmBuilder<T> {
     pub fn purpose(mut self, purpose: Purpose) -> Self {
         self.purpose = purpose;
         self
+    }
+
+    pub fn build(self) -> BeeColonyAlgorithm<T> {
+        BeeColonyAlgorithm {
+            actors_count: self.actors_count,
+            iters_count: self.iters_count,
+            solutions_count: self.solutions_count,
+            workers_part: self.workers_part,
+            purpose: Purpose::Min,
+            fitness_func: Box::new(self.fitness_func),
+            research_func: Box::new(self.research_func),
+            generate_func: Box::new(self.generate_func),
+        }
     }
 }

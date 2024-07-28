@@ -6,7 +6,7 @@ use super::types::{FitnessFuncRaw, ResearchFuncRaw, GenerateFuncRaw};
 use super::bee::{Bee};
 
 
-struct BeeColonyAlgorithm<T> {
+pub struct BeeColonyAlgorithm<T> {
     pub actors_count: usize,
     pub iters_count: u64,
     pub solutions_count: usize,
