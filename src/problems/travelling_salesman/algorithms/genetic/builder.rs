@@ -9,6 +9,7 @@ use rand::{thread_rng};
 use rand::prelude::SliceRandom;
 use crate::algorithms::genetic::methods::Crossover;
 use crate::algorithms::types::Purpose;
+use crate::problems::travelling_salesman::rules::{apply_rules, parse_rules, Rule};
 
 pub struct TSGeneticAlgorithmBuilder {
     matrix: Matrix,
@@ -18,6 +19,7 @@ pub struct TSGeneticAlgorithmBuilder {
     p_mutation: f32,
     mutate_func: Box<dyn Fn(Vec<City>) -> Vec<City>>,
     select_func: Box<dyn Fn(Population<City>, &Purpose) -> Population<City>>,
+    rules: Vec<Rule>,
 }
 
 impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
@@ -63,12 +65,26 @@ impl TSGeneticAlgorithmBuilder {
         }
     }
 
+    pub fn rules(mut self, rules: Vec<&'static str>) -> Self {
+        self.rules = parse_rules(rules);
+        self
+    }
+
     pub fn build(self) -> TSGeneticAlgorithm {
         let cities_count = self.matrix.len();
         let matrix = self.matrix.clone();
 
         let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| {
-            helpers::calculate_distance(&self.matrix, &cities)
+            let penalty: f64 = if self.rules.is_empty() {
+                0.
+            } else {
+                match apply_rules(cities, &self.rules) {
+                    None => return,
+                    Some(p) => p
+                }
+            };
+
+            helpers::calculate_distance(&self.matrix, &cities) + penalty
         });
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move || {
