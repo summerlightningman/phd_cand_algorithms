@@ -18,13 +18,13 @@ enum Action {
 }
 
 #[derive(Debug)]
-struct Rule {
+pub struct Rule {
     constraint: Constraint,
     action: Action,
 }
 
 #[derive(Debug)]
-struct ParseRuleError;
+pub struct ParseRuleError;
 
 impl FromStr for Rule {
     type Err = ParseRuleError;
@@ -117,11 +117,11 @@ fn parse_constraint(s: &str) -> Result<Constraint, ParseRuleError> {
     }
 }
 
-fn parse_rules(rules: &[&str]) -> Vec<Rule> {
+pub fn parse_rules(rules: Vec<&str>) -> Vec<Rule> {
     rules.iter().filter_map(|&rule| rule.parse().ok()).collect()
 }
 
-fn apply_rules(path: &Vec<City>, rules: &Vec<Rule>) -> Option<i32> {
+pub fn apply_rules(path: &Vec<City>, rules: &Vec<Rule>) -> Option<i32> {
     let mut total_score = 0;
 
     for rule in rules {

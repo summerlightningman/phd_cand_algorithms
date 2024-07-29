@@ -21,12 +21,15 @@ pub struct GeneticAlgorithm<T> {
 impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
     pub fn run(&self) -> Result<Population<T>, &str> {
         let mut rng = thread_rng();
-        let mut population: Population<T> = (0..self.actors_count).map(|_| {
+        let mut population: Population<T> = (0..self.actors_count).filter_map(|_| {
             let value = (self.generate_func)();
-            let fitness = (self.fitness_func)(&value);
-            Individual {
-                value: value,
-                fitness: Some(fitness),
+            if let Some(fitness) = (self.fitness_func)(&value) {
+                Some(Individual {
+                    value,
+                    fitness: Some(fitness)
+                })
+            } else {
+                None
             }
         }).collect();
 
@@ -55,18 +58,19 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
                     child_2.value
                 };
 
-                let child_1_fitness = (self.fitness_func)(&child_1_value);
-                let child_2_fitness = (self.fitness_func)(&child_2_value);
+                if let Some(child_1_fitness) = (self.fitness_func)(&child_1_value) {
+                    new_population.push(Individual {
+                        value: child_1_value,
+                        fitness: Some(child_1_fitness),
+                    });
+                }
 
-                new_population.push(Individual {
-                    value: child_1_value,
-                    fitness: Some(child_1_fitness),
-                });
-
-                new_population.push(Individual {
-                    value: child_2_value,
-                    fitness: Some(child_2_fitness),
-                });
+                if let Some(child_2_fitness) = (self.fitness_func)(&child_2_value) {
+                    new_population.push(Individual {
+                        value: child_2_value,
+                        fitness: Some(child_2_fitness),
+                    });
+                }
             }
 
             population.extend(new_population);

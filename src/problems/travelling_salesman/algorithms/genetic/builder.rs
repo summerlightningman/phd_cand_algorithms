@@ -52,6 +52,7 @@ impl TSGeneticAlgorithmBuilder {
             actors_count: ACTORS_COUNT,
             solutions_count: SOLUTIONS_COUNT,
             iters_count: ITERS_COUNT,
+            rules: Vec::new(),
             p_mutation: 0.3,
         }
     }
@@ -74,17 +75,17 @@ impl TSGeneticAlgorithmBuilder {
         let cities_count = self.matrix.len();
         let matrix = self.matrix.clone();
 
-        let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| {
-            let penalty: f64 = if self.rules.is_empty() {
-                0.
+        let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| -> Option<f64> {
+            let penalty: i32 = if self.rules.is_empty() {
+                0
             } else {
                 match apply_rules(cities, &self.rules) {
-                    None => return,
+                    None => return None,
                     Some(p) => p
                 }
             };
 
-            helpers::calculate_distance(&self.matrix, &cities) + penalty
+            Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
         });
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move || {
