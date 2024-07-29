@@ -1,10 +1,11 @@
 use std::str::FromStr;
+use super::types::City;
 
 #[derive(Debug, PartialEq)]
 enum Constraint {
-    Follows(u32, u32),
-    Precedes(u32, u32),
-    InOrder(Vec<u32>),
+    Follows(City, City),
+    Precedes(City, City),
+    InOrder(Vec<City>),
     And(Box<Constraint>, Box<Constraint>),
     Or(Box<Constraint>, Box<Constraint>),
 }
@@ -85,7 +86,7 @@ fn parse_constraint(s: &str) -> Result<Constraint, ParseRuleError> {
     }
 
     if s.contains("следует за") {
-        let nums: Vec<u32> = s
+        let nums: Vec<City> = s
             .split_whitespace()
             .filter_map(|s| s.parse().ok())
             .collect();
@@ -94,7 +95,7 @@ fn parse_constraint(s: &str) -> Result<Constraint, ParseRuleError> {
         }
         Ok(Constraint::Follows(nums[0], nums[1]))
     } else if s.contains("предшествует") {
-        let nums: Vec<u32> = s
+        let nums: Vec<City> = s
             .split_whitespace()
             .filter_map(|s| s.parse().ok())
             .collect();
@@ -103,7 +104,7 @@ fn parse_constraint(s: &str) -> Result<Constraint, ParseRuleError> {
         }
         Ok(Constraint::Precedes(nums[0], nums[1]))
     } else if s.contains("по порядку") {
-        let nums: Vec<u32> = s
+        let nums: Vec<City> = s
             .split_whitespace()
             .filter_map(|s| s.parse().ok())
             .collect();
@@ -120,7 +121,7 @@ fn parse_rules(rules: &[&str]) -> Vec<Rule> {
     rules.iter().filter_map(|&rule| rule.parse().ok()).collect()
 }
 
-fn apply_rules(path: &[u32], rules: &[Rule]) -> Option<i32> {
+fn apply_rules(path: &Vec<City>, rules: &Vec<Rule>) -> Option<i32> {
     let mut total_score = 0;
 
     for rule in rules {
@@ -136,7 +137,7 @@ fn apply_rules(path: &[u32], rules: &[Rule]) -> Option<i32> {
     Some(total_score)
 }
 
-fn check_constraint(constraint: &Constraint, path: &[u32]) -> bool {
+fn check_constraint(constraint: &Constraint, path: &Vec<City>) -> bool {
     match constraint {
         Constraint::Follows(a, b) => {
             path.iter().position(|&x| x == *a) > path.iter().position(|&x| x == *b)
