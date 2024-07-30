@@ -1,2 +1,2 @@
 pub mod algorithm;
-mod builder;
+pub mod builder;

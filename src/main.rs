@@ -5,9 +5,11 @@ use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
 use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
+use problems::travelling_salesman::algorithms::bee_colony::builder::BeeColonyAlgorithmBuilder;
 use algorithms::genetic::methods::{Mutate, Select};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
-use crate::problems::travelling_salesman::rules;
+use algorithms::bee_colony::research_methods;
+
 
 fn main() {
     let matrix = vec![
@@ -22,28 +24,37 @@ fn main() {
         vec![4.0, 29.0, 23.0, 25.0, 20.0, 36.0, 101.0, 15.0, 0.0, 35.0],
         vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
     ];
+
+    // let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
+    //     .iters_count(1000)
+    //     .build();
     //
-    let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
-        .iters_count(1000)
-        .build();
-
-    let ac_time_start = Instant::now();
-    let ac_solutions = ac.run();
-    let ac_d_time = ac_time_start.elapsed();
-
-    println!("{:?}", ac_d_time);
-    println!("{:?}", ac_solutions.unwrap());
+    // let ac_time_start = Instant::now();
+    // let ac_solutions = ac.run();
+    // let ac_d_time = ac_time_start.elapsed();
+    //
+    // println!("{:?}", ac_d_time);
+    // println!("{:?}", ac_solutions.unwrap());
 
     let ga = TSGeneticAlgorithmBuilder::new(
         matrix.clone(),
         Mutate::swap_indexes(Some(3)),
-        Select::best_n(Some(0.7)),
-    ).solutions_count(20).build();
+        Select::tournament(5, Some(0.7)),
+    ).solutions_count(20).p_mutation(0.99).build();
 
     let ga_time_start = Instant::now();
     let ga_solutions = ga.run().unwrap();
     let ga_d_time = ga_time_start.elapsed();
-    //
+
     println!("{:?}", ga_d_time);
     println!("{:?}", ga_solutions);
+
+    // let bc = BeeColonyAlgorithmBuilder::new(matrix, research_methods::swap_indexes(Some(3))).solutions_count(20).build();
+    //
+    // let bc_time_start = Instant::now();
+    // let bc_solutions = bc.run().unwrap();
+    // let bc_d_time = bc_time_start.elapsed();
+    // //
+    // println!("{:?}", bc_d_time);
+    // println!("{:?}", bc_solutions);
 }

@@ -1,2 +1,2 @@
 pub mod genetic;
-mod bee_colony;
+pub mod bee_colony;

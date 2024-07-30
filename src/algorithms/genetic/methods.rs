@@ -103,12 +103,10 @@ impl Mutate {
     }
 
     pub fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>, &mut ThreadRng) -> Vec<T> {
-        move |value, rng: &mut ThreadRng| {
+        move |mut value, rng: &mut ThreadRng| {
             let (left, right) = helpers::generate_two_points(offset, value.len(), rng);
-            let mut value_new = value.to_vec();
-
-            value_new[left..right].reverse();
-            value_new
+            value[left..right].reverse();
+            value
         }
     }
 }

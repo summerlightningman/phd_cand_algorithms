@@ -19,8 +19,8 @@ pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Bee<T>, &Bee<T>) -> 
         };
 
         return match purpose {
-            Purpose::Min => b_fitness.total_cmp(&a_fitness),
-            Purpose::Max => a_fitness.total_cmp(&b_fitness)
+            Purpose::Min => a_fitness.total_cmp(&b_fitness),
+            Purpose::Max => b_fitness.total_cmp(&b_fitness)
         }
     }
 }
