@@ -36,12 +36,12 @@ impl Crossover {
     pub fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Individual<T>, Individual<T>) {
         return move |a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng| {
             let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), points_range, rng);
-            let mut values_left: Vec<T> = Vec::new();
+            let mut values_left: Vec<T> = Vec::with_capacity(a.value.len());
             values_left.extend_from_slice(&a.value[..point_left]);
             values_left.extend_from_slice(&b.value[point_left..point_right]);
             values_left.extend_from_slice(&a.value[point_right..]);
 
-            let mut values_right: Vec<T> = Vec::new();
+            let mut values_right: Vec<T> = Vec::with_capacity(a.value.len());
             values_right.extend_from_slice(&b.value[..point_left]);
             values_right.extend_from_slice(&a.value[point_left..point_right]);
             values_right.extend_from_slice(&b.value[point_right..]);
@@ -144,7 +144,7 @@ impl Select {
     pub fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
         move |population: Population<T>, purpose: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            let mut population_new: Population<T> = Vec::new();
+            let mut population_new: Population<T> = Vec::with_capacity(population.len());
 
             for _ in 0..count {
                 let candidates: Vec<Individual<T>> = population.iter().choose_multiple(rng, size).into_iter().cloned().collect();

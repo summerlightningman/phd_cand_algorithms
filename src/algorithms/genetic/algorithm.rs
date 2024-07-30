@@ -19,25 +19,25 @@ pub struct GeneticAlgorithm<T> {
     pub purpose: Purpose,
 }
 
-impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
+impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
     pub fn run(&self) -> Result<Population<T>, &str> {
         let mut rng = thread_rng();
-        let mut population: Population<T> = (0..self.actors_count).filter_map(|_| {
+        let mut population: Population<T> = Vec::with_capacity(self.actors_count);
+
+        for _ in 0..self.actors_count {
             let value = (self.generate_func)(&mut rng);
             if let Some(fitness) = (self.fitness_func)(&value) {
-                Some(Individual {
+                population.push(Individual {
                     value,
                     fitness: Some(fitness)
-                })
-            } else {
-                None
+                });
             }
-        }).collect();
+        }
 
         for _ in 0..self.iters_count {
             // SELECTION
             population = (self.select_func)(population, &self.purpose, &mut rng);
-            let mut new_population: Population<T> = Vec::new();
+            let mut new_population: Population<T> = Vec::with_capacity(self.actors_count);
 
             // CROSSOVER
             for individual in &population {
@@ -94,6 +94,7 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
         });
         population.sort_by(compare_by_fitness(&self.purpose));
         population.truncate(self.solutions_count);
+        population.shrink_to_fit();
         Ok(population)
     }
 }

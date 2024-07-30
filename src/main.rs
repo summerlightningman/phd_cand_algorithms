@@ -23,17 +23,17 @@ fn main() {
         vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
     ];
     //
-    // let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
-    //     .iters_count(1000)
-    //     .build();
-    //
-    // let ac_time_start = Instant::now();
-    // let ac_solutions = ac.run();
-    // let ac_d_time = ac_time_start.elapsed();
-    //
-    // println!("{:?}", ac_d_time);
-    // println!("{:?}", ac_solutions.unwrap());
-    //
+    let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
+        .iters_count(1000)
+        .build();
+
+    let ac_time_start = Instant::now();
+    let ac_solutions = ac.run();
+    let ac_d_time = ac_time_start.elapsed();
+
+    println!("{:?}", ac_d_time);
+    println!("{:?}", ac_solutions.unwrap());
+
     let ga = TSGeneticAlgorithmBuilder::new(
         matrix.clone(),
         Mutate::swap_indexes(Some(3)),
