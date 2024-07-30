@@ -1,11 +1,10 @@
 use crate::algorithms::algorithm::OptimizationAlgorithm;
-use crate::problems::travelling_salesman::types::{Matrix, City};
+use crate::problems::travelling_salesman::types::{City};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
 use crate::algorithms::types::Solution;
 
 
 pub struct TSGeneticAlgorithm {
-    pub matrix: Matrix,
     pub algo: GeneticAlgorithm<City>
 }
 

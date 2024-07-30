@@ -7,6 +7,7 @@ use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
 use rand::{thread_rng};
 use rand::prelude::SliceRandom;
+use rand::rngs::ThreadRng;
 use crate::algorithms::genetic::methods::Crossover;
 use crate::algorithms::types::Purpose;
 use crate::problems::travelling_salesman::rules::{apply_rules, parse_rules, Rule};
@@ -17,7 +18,7 @@ pub struct TSGeneticAlgorithmBuilder {
     iters_count: u64,
     solutions_count: usize,
     p_mutation: f32,
-    mutate_func: Box<dyn Fn(Vec<City>) -> Vec<City>>,
+    mutate_func: Box<dyn Fn(Vec<City>, &mut ThreadRng) -> Vec<City>>,
     select_func: Box<dyn Fn(Population<City>, &Purpose) -> Population<City>>,
     rules: Vec<Rule>,
 }
@@ -42,7 +43,7 @@ impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
 impl TSGeneticAlgorithmBuilder {
     pub fn new(
         matrix: Matrix,
-        mutate_func: impl Fn(Vec<City>) -> Vec<City> + 'static,
+        mutate_func: impl Fn(Vec<City>, &mut ThreadRng) -> Vec<City> + 'static,
         select_func: impl Fn(Population<City>, &Purpose) -> Population<City> + 'static,
     ) -> Self {
         Self {
@@ -73,7 +74,6 @@ impl TSGeneticAlgorithmBuilder {
 
     pub fn build(self) -> TSGeneticAlgorithm {
         let cities_count = self.matrix.len();
-        let matrix = self.matrix.clone();
 
         let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| -> Option<f64> {
             let penalty: i32 = if self.rules.is_empty() {
@@ -96,7 +96,6 @@ impl TSGeneticAlgorithmBuilder {
         });
 
         TSGeneticAlgorithm {
-            matrix,
             algo: GeneticAlgorithm {
                 fitness_func,
                 generate_func,

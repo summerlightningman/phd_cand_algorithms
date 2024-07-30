@@ -1,3 +1,4 @@
+use rand::rngs::ThreadRng;
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::bee_colony::types::{FitnessFunc, GenerateFunc, ResearchFuncRaw};
 use crate::algorithms::types::Purpose;
@@ -11,7 +12,7 @@ pub struct BeeColonyAlgorithmBuilder<T> {
     pub workers_part: f32,
     pub purpose: Purpose,
     pub fitness_func: FitnessFunc<T>,
-    pub research_func: ResearchFuncRaw<T>,
+    pub research_func: Box<dyn Fn(&Vec<T>, &mut ThreadRng) -> Vec<T>>,
     pub generate_func: GenerateFunc<T>,
 }
 
@@ -36,7 +37,7 @@ impl<T: 'static> BeeColonyAlgorithmBuilder<T> {
     pub fn new(
         fitness_func: FitnessFunc<T>,
         generate_func: GenerateFunc<T>,
-        research_func: impl Fn(&Vec<T>) -> Vec<T> + 'static
+        research_func: impl Fn(&Vec<T>, &mut ThreadRng) -> Vec<T> + 'static
     ) -> Self {
         Self {
             actors_count: ACTORS_COUNT,
@@ -69,9 +70,9 @@ impl<T: 'static> BeeColonyAlgorithmBuilder<T> {
             iters_count: self.iters_count,
             solutions_count: self.solutions_count,
             workers_part: self.workers_part,
-            purpose: Purpose::Min,
+            purpose: self.purpose,
             fitness_func: Box::new(self.fitness_func),
-            research_func: Box::new(self.research_func),
+            research_func: self.research_func,
             generate_func: Box::new(self.generate_func),
         }
     }

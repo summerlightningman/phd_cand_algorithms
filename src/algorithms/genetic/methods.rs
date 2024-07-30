@@ -1,6 +1,7 @@
 use super::individual::Individual;
 use crate::algorithms::helpers;
-use rand::{Rng, thread_rng, seq::IteratorRandom};
+use rand::{Rng, seq::IteratorRandom};
+use rand::prelude::ThreadRng;
 use crate::algorithms::genetic::types::Population;
 use crate::algorithms::types::Purpose;
 use super::helpers::compare_by_fitness;
@@ -10,12 +11,11 @@ pub struct Select;
 pub struct Mutate;
 
 impl Crossover {
-    pub fn one_point<T: Clone>(point_idx: Option<usize>) -> impl Fn(&Individual<T>, &Individual<T>) -> (Individual<T>, Individual<T>) {
-        return move |a: &Individual<T>, b: &Individual<T>| {
+    pub fn one_point<T: Clone>(point_idx: Option<usize>) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+        return move |a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng| {
             let idx = if let Some(val) = point_idx {
                 val
             } else {
-                let mut rng = thread_rng();
                 rng.gen_range(0..a.value.len() - 1)
             };
 
@@ -33,9 +33,9 @@ impl Crossover {
         };
     }
 
-    pub fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>) -> (Individual<T>, Individual<T>) {
-        return move |a: &Individual<T>, b: &Individual<T>| {
-            let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), points_range);
+    pub fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+        return move |a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng| {
+            let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), points_range, rng);
             let mut values_left: Vec<T> = Vec::new();
             values_left.extend_from_slice(&a.value[..point_left]);
             values_left.extend_from_slice(&b.value[point_left..point_right]);
@@ -53,8 +53,8 @@ impl Crossover {
         };
     }
 
-    pub fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>) -> (Individual<T>, Individual<T>) {
-        let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), (None, None));
+    pub fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+        let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), (None, None), rng);
         let value_length = a.value.len();
 
         let mut child_a_value = vec![None; point_left];
@@ -73,7 +73,6 @@ impl Crossover {
                 if arr.iter().all(|el| el.is_some()) {
                     break;
                 }
-                // if arr.contains(Some(*ind.value[arr_idx])) {
                 if arr.iter().flatten().any(|el| ind.value[arr_idx] == *el) {
                     arr_idx = (arr_idx + 1) % arr_len;
                 } else {
@@ -95,17 +94,17 @@ impl Crossover {
 }
 
 impl Mutate {
-    pub fn swap_indexes<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>) -> Vec<T> {
-        move |mut value| {
-            let (left, right) = helpers::generate_two_points(offset, value.len());
+    pub fn swap_indexes<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>, &mut ThreadRng) -> Vec<T> {
+        move |mut value, rng: &mut ThreadRng| {
+            let (left, right) = helpers::generate_two_points(offset, value.len(), rng);
             value.swap(left, right);
             value
         }
     }
 
-    pub fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>) -> Vec<T> {
-        move |value| {
-            let (left, right) = helpers::generate_two_points(offset, value.len());
+    pub fn reverse_elements<T: std::clone::Clone>(offset: Option<usize>) -> impl Fn(Vec<T>, &mut ThreadRng) -> Vec<T> {
+        move |value, rng: &mut ThreadRng| {
+            let (left, right) = helpers::generate_two_points(offset, value.len(), rng);
             let mut value_new = value.to_vec();
 
             value_new[left..right].reverse();
@@ -116,8 +115,8 @@ impl Mutate {
 
 const RATE_DEFAULT: f32 = 0.7;
 impl Select {
-    pub fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        move |population: Population<T>, purpose: &Purpose| {
+    pub fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
+        move |population: Population<T>, purpose: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
             let probabilities: Vec<f32> = population.iter().map(|ind| {
@@ -131,26 +130,24 @@ impl Select {
                     0.
                 }
             }).collect();
-            helpers::weighted_random_sampling(&population, probabilities, count)
+            helpers::weighted_random_sampling(&population, probabilities, count, rng)
         }
     }
 
-    pub fn stochastic<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        move |population: Population<T>, _: &Purpose| {
+    pub fn stochastic<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
+        move |population: Population<T>, _: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            let mut rng = thread_rng();
-            population.into_iter().choose_multiple(&mut rng, count)
+            population.into_iter().choose_multiple(rng, count)
         }
     }
 
-    pub fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        move |population: Population<T>, purpose: &Purpose| {
+    pub fn tournament<T: Clone>(size: usize, rate: Option<f32>) -> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
+        move |population: Population<T>, purpose: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            let mut rng = thread_rng();
             let mut population_new: Population<T> = Vec::new();
 
             for _ in 0..count {
-                let candidates: Vec<Individual<T>> = population.iter().choose_multiple(&mut rng, size).into_iter().cloned().collect();
+                let candidates: Vec<Individual<T>> = population.iter().choose_multiple(rng, size).into_iter().cloned().collect();
                 let winner = match purpose {
                     Purpose::Min => candidates.into_iter().min_by(compare_by_fitness(purpose)),
                     Purpose::Max => candidates.into_iter().max_by(compare_by_fitness(purpose)),
@@ -165,8 +162,8 @@ impl Select {
         }
     }
 
-    pub fn best_n<T: Clone>(rate: Option<f32>)-> impl Fn(Population<T>, &Purpose) -> Population<T> {
-        move |mut population: Population<T>, purpose: &Purpose| {
+    pub fn best_n<T: Clone>(rate: Option<f32>)-> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
+        move |mut population: Population<T>, purpose: &Purpose, _: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             population.sort_by(compare_by_fitness(purpose));
             population.truncate(count);

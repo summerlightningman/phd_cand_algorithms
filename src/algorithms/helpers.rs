@@ -1,7 +1,8 @@
 use rand::{Rng, thread_rng};
 use rand::distributions::{WeightedIndex, Distribution};
+use rand::rngs::ThreadRng;
 
-pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize, usize) {
+pub fn generate_two_points(offset_: Option<usize>, seq_length: usize, rng: &mut ThreadRng) -> (usize, usize) {
     if seq_length <= 1 {
         return (0, 0);
     }
@@ -9,12 +10,10 @@ pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize,
     let offset = match offset_ {
         Some(o) => o,
         None => {
-            let mut rng = thread_rng();
             rng.gen_range(0..seq_length / 2)
         }
     };
 
-    let mut rng = thread_rng();
     let a = rng.gen_range(0..seq_length);
     let mut b = if rng.gen_bool(0.5) {
         a + offset
@@ -33,17 +32,16 @@ pub fn generate_two_points(offset_: Option<usize>, seq_length: usize) -> (usize,
     }
 }
 
-pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>, Option<usize>)) -> (usize, usize) {
-    let mut rnd = thread_rng();
+pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>, Option<usize>), rng: &mut ThreadRng) -> (usize, usize) {
     let (point_left, point_right) = points;
     let middle = seq_length / 2;
     let left = match point_left {
         Some(val) => val,
-        _ => rnd.gen_range(0..middle)
+        _ => rng.gen_range(0..middle)
     };
     let right = match point_right {
         Some(val) => val,
-        _ => rnd.gen_range(middle..seq_length)
+        _ => rng.gen_range(middle..seq_length)
     };
 
     if left > right {
@@ -58,12 +56,11 @@ pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
     return count.round() as usize
 }
 
-pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: usize) -> Vec<T> {
-    let mut rng = thread_rng();
+pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: usize, rng: &mut ThreadRng) -> Vec<T> {
     let dist = WeightedIndex::new(weights).unwrap();
 
     (0..k).map(|_| {
-        let index = dist.sample(&mut rng);
+        let index = dist.sample(rng);
         items[index].clone()
     }).collect()
 }

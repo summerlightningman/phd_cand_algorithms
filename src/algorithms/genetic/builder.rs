@@ -1,3 +1,4 @@
+use rand::rngs::ThreadRng;
 use super::types::{FitnessFunc, CrossoverFunc, GenerateFunc};
 use super::algorithm::GeneticAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
@@ -12,7 +13,7 @@ pub struct GeneticAlgorithmBuilder<T> {
     solutions_count: usize,
     p_mutation: f32,
     crossover_func: CrossoverFunc<T>,
-    mutate_func: Box<dyn Fn(Vec<T>) -> Vec<T>>,
+    mutate_func: Box<dyn Fn(Vec<T>, &mut ThreadRng) -> Vec<T>>,
     select_func: Box<dyn Fn(Population<T>, &Purpose) -> Population<T>>,
     generate_func: GenerateFunc<T>,
     purpose: Purpose,
@@ -39,7 +40,7 @@ impl<T: 'static> GeneticAlgorithmBuilder<T> {
     pub fn new(
         fitness_func: FitnessFunc<T>,
         crossover_func: CrossoverFunc<T>,
-        mutate_func: impl Fn(Vec<T>) -> Vec<T> + 'static,
+        mutate_func: impl Fn(Vec<T>, &mut ThreadRng) -> Vec<T> + 'static,
         select_func: impl Fn(Population<T>, &Purpose) -> Population<T> + 'static,
         generate_func: GenerateFunc<T>,
     ) -> Self {
