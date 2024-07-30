@@ -14,7 +14,7 @@ pub struct GeneticAlgorithm<T> {
     pub p_mutation: f32,
     pub crossover_func: CrossoverFunc<T>,
     pub mutate_func: Box<dyn Fn(Vec<T>, &mut ThreadRng) -> Vec<T>>,
-    pub select_func: Box<dyn Fn(Population<T>, &Purpose) -> Population<T>>,
+    pub select_func: Box<dyn Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T>>,
     pub generate_func: GenerateFuncRaw<T>,
     pub purpose: Purpose,
 }
@@ -23,7 +23,7 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
     pub fn run(&self) -> Result<Population<T>, &str> {
         let mut rng = thread_rng();
         let mut population: Population<T> = (0..self.actors_count).filter_map(|_| {
-            let value = (self.generate_func)();
+            let value = (self.generate_func)(&mut rng);
             if let Some(fitness) = (self.fitness_func)(&value) {
                 Some(Individual {
                     value,
@@ -36,7 +36,7 @@ impl<T: std::fmt::Debug + Clone> GeneticAlgorithm<T> {
 
         for _ in 0..self.iters_count {
             // SELECTION
-            population = (self.select_func)(population, &self.purpose);
+            population = (self.select_func)(population, &self.purpose, &mut rng);
             let mut new_population: Population<T> = Vec::new();
 
             // CROSSOVER

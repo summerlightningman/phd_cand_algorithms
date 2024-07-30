@@ -14,7 +14,7 @@ pub struct GeneticAlgorithmBuilder<T> {
     p_mutation: f32,
     crossover_func: CrossoverFunc<T>,
     mutate_func: Box<dyn Fn(Vec<T>, &mut ThreadRng) -> Vec<T>>,
-    select_func: Box<dyn Fn(Population<T>, &Purpose) -> Population<T>>,
+    select_func: Box<dyn Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T>>,
     generate_func: GenerateFunc<T>,
     purpose: Purpose,
 }
@@ -41,7 +41,7 @@ impl<T: 'static> GeneticAlgorithmBuilder<T> {
         fitness_func: FitnessFunc<T>,
         crossover_func: CrossoverFunc<T>,
         mutate_func: impl Fn(Vec<T>, &mut ThreadRng) -> Vec<T> + 'static,
-        select_func: impl Fn(Population<T>, &Purpose) -> Population<T> + 'static,
+        select_func: impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> + 'static,
         generate_func: GenerateFunc<T>,
     ) -> Self {
         Self {

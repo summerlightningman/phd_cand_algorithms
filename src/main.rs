@@ -34,16 +34,16 @@ fn main() {
     // println!("{:?}", ac_d_time);
     // println!("{:?}", ac_solutions.unwrap());
     //
-    // let ga = TSGeneticAlgorithmBuilder::new(
-    //     matrix.clone(),
-    //     Mutate::swap_indexes(Some(3)),
-    //     Select::best_n(Some(0.7)),
-    // ).solutions_count(20).build();
+    let ga = TSGeneticAlgorithmBuilder::new(
+        matrix.clone(),
+        Mutate::swap_indexes(Some(3)),
+        Select::best_n(Some(0.7)),
+    ).solutions_count(20).build();
+
+    let ga_time_start = Instant::now();
+    let ga_solutions = ga.run().unwrap();
+    let ga_d_time = ga_time_start.elapsed();
     //
-    // let ga_time_start = Instant::now();
-    // let ga_solutions = ga.run().unwrap();
-    // let ga_d_time = ga_time_start.elapsed();
-    //
-    // println!("{:?}", ga_d_time);
-    // println!("{:?}", ga_solutions);
+    println!("{:?}", ga_d_time);
+    println!("{:?}", ga_solutions);
 }

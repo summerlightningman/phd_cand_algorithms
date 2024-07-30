@@ -19,7 +19,7 @@ pub struct TSGeneticAlgorithmBuilder {
     solutions_count: usize,
     p_mutation: f32,
     mutate_func: Box<dyn Fn(Vec<City>, &mut ThreadRng) -> Vec<City>>,
-    select_func: Box<dyn Fn(Population<City>, &Purpose) -> Population<City>>,
+    select_func: Box<dyn Fn(Population<City>, &Purpose, &mut ThreadRng) -> Population<City>>,
     rules: Vec<Rule>,
 }
 
@@ -44,7 +44,7 @@ impl TSGeneticAlgorithmBuilder {
     pub fn new(
         matrix: Matrix,
         mutate_func: impl Fn(Vec<City>, &mut ThreadRng) -> Vec<City> + 'static,
-        select_func: impl Fn(Population<City>, &Purpose) -> Population<City> + 'static,
+        select_func: impl Fn(Population<City>, &Purpose, &mut ThreadRng) -> Population<City> + 'static,
     ) -> Self {
         Self {
             matrix,
@@ -88,10 +88,9 @@ impl TSGeneticAlgorithmBuilder {
             Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
         });
 
-        let generate_func: GenerateFuncRaw<City> = Box::new(move || {
-            let mut rng = thread_rng();
+        let generate_func: GenerateFuncRaw<City> = Box::new(move |rng: &mut ThreadRng| {
             let mut value: Vec<usize> = (0..cities_count).collect();
-            value.shuffle(&mut rng);
+            value.shuffle(rng);
             value
         });
 
