@@ -10,14 +10,14 @@ use crate::algorithms::types::Solution;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
-    iters_count: usize,
-    actors_count: usize,
-    solutions_count: usize,
+    pub iters_count: usize,
+    pub actors_count: usize,
+    pub solutions_count: usize,
     alpha: f64,
     beta: f64,
     q: f64,
     p: f64,
-    matrix: Matrix,
+    pub matrix: Matrix,
 }
 
 impl OptimizationAlgorithm for AntColonyAlgorithm {
@@ -87,7 +87,7 @@ impl AntColonyAlgorithm {
         }
     }
 
-    fn cities_count(&self) -> usize {
+    pub fn cities_count(&self) -> usize {
         self.matrix.len()
     }
 
@@ -108,7 +108,7 @@ impl AntColonyAlgorithm {
         1. / distance
     }
 
-    fn generate_pheromone_matrix(cities_count: usize) -> PheromoneMatrix {
+    pub fn generate_pheromone_matrix(cities_count: usize) -> PheromoneMatrix {
         vec![vec![1.; cities_count]; cities_count]
     }
 
@@ -130,7 +130,7 @@ impl AntColonyAlgorithm {
             .collect()
     }
 
-    fn get_probabilities_list(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Result<Vec<f64>, &str> {
+    pub fn get_probabilities_list(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Result<Vec<f64>, &str> {
         let cities_preferences = self.get_ant_preferences(ant, pheromone_matrix);
         let cities_preferences_sum: f64 = cities_preferences.iter().sum();
 
@@ -150,7 +150,7 @@ impl AntColonyAlgorithm {
         }
     }
 
-    fn select_city(&self, probabilities: Vec<f64>) -> Result<City, &str> {
+    pub fn select_city(&self, probabilities: Vec<f64>) -> Result<City, &str> {
         let cities_list: Vec<City> = self.cities_list();
         let selected_cities = random_choice().random_choice_f64(&cities_list, &probabilities, 1);
         if selected_cities.len() == 0 {
