@@ -1,11 +1,12 @@
+use rand::thread_rng;
 use crate::algorithms::algorithm::OptimizationAlgorithm;
-use crate::algorithms::types::Solution;
 
 use super::ant::Ant;
 use super::types::{City, Matrix, PheromoneMatrix};
 use super::utils::calculate_distance;
 
 use random_choice::random_choice;
+use crate::algorithms::types::Solution;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
@@ -24,7 +25,8 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
         let cities_count = self.cities_count();
         let mut pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
         let mut solutions: Vec<Solution> = Vec::new();
-        let mut colony: Vec<Ant> = (0..self.actors_count).map(|_| Ant::new(cities_count)).collect();
+        let mut rng = thread_rng();
+        let mut colony: Vec<Ant> = (0..self.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
 
         for _ in 1..=self.iters_count {
             let mut iter_pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);

@@ -1,5 +1,6 @@
 use super::types::City;
-use rand::{Rng, thread_rng};
+use rand::{Rng};
+use rand::rngs::ThreadRng;
 
 #[derive(Debug, Clone)]
 pub struct Ant {
@@ -7,8 +8,7 @@ pub struct Ant {
 }
 
 impl Ant {
-    pub fn new(cities_count: usize) -> Self {
-        let mut rng = thread_rng();
+    pub fn new(cities_count: usize, rng: &mut ThreadRng) -> Self {
         let path: Vec<City> = vec![rng.gen_range(0..cities_count), ];
 
         Self { path }
