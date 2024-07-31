@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::num::{NonZero, NonZeroUsize};
+use std::num::NonZeroUsize;
 use lru::LruCache;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
@@ -7,7 +7,7 @@ use crate::problems::travelling_salesman::rules::Rule;
 use crate::problems::travelling_salesman::types::{City, Matrix};
 use super::algorithm::TSAntColonyAlgorithm;
 
-struct TSAntColonyAlgorithmBuilder {
+pub struct TSAntColonyAlgorithmBuilder {
     matrix: Matrix,
     rules: Vec<Rule>,
     penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,

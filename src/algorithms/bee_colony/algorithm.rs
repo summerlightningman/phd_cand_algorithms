@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::fmt::Debug;
 use rand::thread_rng;
 use random_choice::random_choice;

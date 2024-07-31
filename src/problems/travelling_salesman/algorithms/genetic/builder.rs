@@ -5,7 +5,6 @@ use crate::algorithms::genetic::types::{FitnessFuncRaw, GenerateFuncRaw, Populat
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
 use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
-use rand::{thread_rng};
 use rand::prelude::SliceRandom;
 use rand::rngs::ThreadRng;
 use crate::algorithms::genetic::methods::Crossover;

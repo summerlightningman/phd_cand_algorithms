@@ -1,4 +1,4 @@
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use rand::distributions::{WeightedIndex, Distribution};
 use rand::rngs::ThreadRng;
 

@@ -9,6 +9,4 @@ pub type GenerateFunc<T> = fn() -> FoodSource<T>;
 pub type FitnessFuncRaw<T> = Box<dyn Fn(&FoodSource<T>) -> Option<Fitness>>;
 pub type FitnessFunc<T> = fn(&FoodSource<T>) -> Option<Fitness>;
 
-pub type ResearchFunc<T> = fn(&Vec<T>) -> FoodSource<T>;
-
 pub type ResearchFuncRaw<T> = Box<dyn Fn(&FoodSource<T>, &mut ThreadRng) -> FoodSource<T>>;

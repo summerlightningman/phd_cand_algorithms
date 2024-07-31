@@ -1,14 +1,11 @@
 mod algorithms;
 mod problems;
 
-use algorithms::ant_colony::builder::AntColonyAlgorithmBuilder;
 use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
 use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
-use problems::travelling_salesman::algorithms::bee_colony::builder::BeeColonyAlgorithmBuilder;
 use algorithms::genetic::methods::{Mutate, Select};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
-use algorithms::bee_colony::research_methods;
 
 
 fn main() {
