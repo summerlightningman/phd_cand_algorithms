@@ -7,11 +7,10 @@ use super::utils::calculate_distance;
 
 use random_choice::random_choice;
 use crate::algorithms::types::Solution;
-use crate::problems::travelling_salesman::rules::apply_rules;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
-    pub iters_count: usize,
+    pub iters_count: u64,
     pub actors_count: usize,
     pub solutions_count: usize,
     pub alpha: f64,
@@ -67,7 +66,7 @@ impl OptimizationAlgorithm for AntColonyAlgorithm {
 
 impl AntColonyAlgorithm {
     pub fn new(
-        iters_count: usize,
+        iters_count: u64,
         solutions_count: usize,
         actors_count: usize,
         alpha: f64,

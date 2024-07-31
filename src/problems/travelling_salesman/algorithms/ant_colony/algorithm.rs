@@ -9,10 +9,10 @@ use crate::problems::travelling_salesman::rules::Rule;
 use crate::problems::travelling_salesman::rules::apply_rules;
 use lru::LruCache;
 
-struct TSAntColonyAlgorithm {
-    algo: Parent,
-    rules: Vec<Rule>,
-    penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>
+pub struct TSAntColonyAlgorithm {
+    pub algo: Parent,
+    pub rules: Vec<Rule>,
+    pub penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
 }
 
 impl TSAntColonyAlgorithm {

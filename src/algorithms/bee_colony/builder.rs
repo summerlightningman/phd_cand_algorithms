@@ -1,6 +1,6 @@
 use rand::rngs::ThreadRng;
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
-use crate::algorithms::bee_colony::types::{FitnessFunc, GenerateFunc, ResearchFuncRaw};
+use crate::algorithms::bee_colony::types::{FitnessFunc, GenerateFunc};
 use crate::algorithms::types::Purpose;
 use crate::algorithms::constants::{ACTORS_COUNT, SOLUTIONS_COUNT, ITERS_COUNT};
 use super::algorithm::BeeColonyAlgorithm;

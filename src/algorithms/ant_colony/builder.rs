@@ -4,7 +4,7 @@ use super::types::Matrix;
 #[allow(dead_code)]
 pub struct AntColonyAlgorithmBuilder {
     actors_count: usize,
-    iters_count: usize,
+    iters_count: u64,
     solutions_count: usize,
     alpha: f64,
     beta: f64,
@@ -33,7 +33,7 @@ impl AntColonyAlgorithmBuilder {
         }
     }
 
-    pub fn iters_count(mut self, count: usize) -> Self {
+    pub fn iters_count(mut self, count: u64) -> Self {
         self.iters_count = count;
         self
     }
