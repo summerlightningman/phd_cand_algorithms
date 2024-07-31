@@ -7,16 +7,17 @@ use super::utils::calculate_distance;
 
 use random_choice::random_choice;
 use crate::algorithms::types::Solution;
+use crate::problems::travelling_salesman::rules::apply_rules;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
     pub iters_count: usize,
     pub actors_count: usize,
     pub solutions_count: usize,
-    alpha: f64,
-    beta: f64,
-    q: f64,
-    p: f64,
+    pub alpha: f64,
+    pub beta: f64,
+    pub q: f64,
+    pub p: f64,
     pub matrix: Matrix,
 }
 
@@ -160,7 +161,7 @@ impl AntColonyAlgorithm {
         }
     }
 
-    fn vape_pheromone(&self, pheromone_matrix: &mut PheromoneMatrix, iter_pheromone_matrix: &PheromoneMatrix) {
+    pub fn vape_pheromone(&self, pheromone_matrix: &mut PheromoneMatrix, iter_pheromone_matrix: &PheromoneMatrix) {
         let cities_count = self.cities_count();
 
         for i in 0..cities_count {
