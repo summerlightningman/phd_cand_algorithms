@@ -1,4 +1,4 @@
-use super::individual::Individual;
+use crate::algorithms::individual::Individual;
 use crate::algorithms::helpers;
 use rand::{Rng, seq::IteratorRandom};
 use rand::prelude::ThreadRng;
@@ -116,7 +116,7 @@ impl Select {
     pub fn roulette<T: Clone>(rate: Option<f32>) -> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
         move |population: Population<T>, purpose: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            let fitness_sum: f64 = population.iter().filter_map(|ind| ind.fitness).sum();
+            let fitness_sum: f32 = population.iter().filter_map(|ind| ind.fitness).sum();
             let probabilities: Vec<f32> = population.iter().map(|ind| {
                 if let Some(fitness) = ind.fitness {
                     return if let Purpose::Min = purpose {

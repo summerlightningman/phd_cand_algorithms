@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use crate::algorithms::genetic::individual::Individual;
+use crate::algorithms::individual::Individual;
 use crate::algorithms::types::Purpose;
 
 

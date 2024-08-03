@@ -1,4 +1,4 @@
-use crate::algorithms::genetic::individual::Individual;
+use crate::algorithms::individual::Individual;
 use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
@@ -7,7 +7,7 @@ use crate::algorithms::types::{Purpose};
 use super::helpers::compare_by_fitness;
 
 pub struct GeneticAlgorithm<T> {
-    pub fitness_func: FitnessFuncRaw<T>,
+    pub fitness_funcs: Vec<FitnessFuncRaw<T>>,
     pub actors_count: usize,
     pub iters_count: u64,
     pub solutions_count: usize,
@@ -26,12 +26,32 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
 
         for _ in 0..self.actors_count {
             let value = (self.generate_func)(&mut rng);
-            if let Some(fitness) = (self.fitness_func)(&value) {
-                population.push(Individual {
-                    value,
-                    fitness: Some(fitness)
-                });
+            population.push(Individual::with_fitnesses(value, &self.fitness_funcs));
+        }
+
+        let fitnesses_min: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
+            population.iter().map(|ind| ind.fitnesses[idx]).filter(|fitness| fitness.is_some()).collect().min()
+        }).collect();
+        let fitnesses_max: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
+            population.iter().map(|ind| ind.fitnesses[idx]).filter(|fitness| fitness.is_some()).collect().max()
+        }).collect();
+        let fitnesses_diff: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
+           fitnesses_max[idx] - fitnesses_min[idx]
+        }).collect();
+
+        'outer: for ind in population.iter_mut() {
+            let mut fitness = 0.;
+
+            for (idx, fitness_raw) in ind.fitnesses.iter().enumerate() {
+                if let Some(fitness_raw) = fitness_raw {
+                    fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
+                } else {
+                    ind.fitness = None;
+                    continue 'outer
+                }
             }
+
+            ind.fitness = Some(fitness);
         }
 
         for _ in 0..self.iters_count {
@@ -90,7 +110,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
                 None => return true
             };
 
-            return fitness_a.total_cmp(&fitness_b).is_eq()
+            return fitness_a.partial_cmp(&fitness_b).is_eq()
         });
         population.sort_by(compare_by_fitness(&self.purpose));
         population.truncate(self.solutions_count);

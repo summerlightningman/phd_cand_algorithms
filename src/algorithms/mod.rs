@@ -5,3 +5,4 @@ pub mod types;
 pub mod genetic;
 pub mod constants;
 mod helpers;
+pub mod individual;

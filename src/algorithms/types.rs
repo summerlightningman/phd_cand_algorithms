@@ -12,3 +12,7 @@ pub struct Solution {
     pub path: Vec<City>,
     pub distance: f64,
 }
+
+pub type Fitness = Option<f32>;
+pub type FitnessFuncRaw<T> = Box<dyn Fn(&Vec<T>) -> Fitness>;
+pub type FitnessFuncs<T> = Vec<FitnessFuncRaw<T>>;

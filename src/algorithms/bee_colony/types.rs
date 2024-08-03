@@ -1,7 +1,7 @@
 use rand::rngs::ThreadRng;
+use crate::algorithms::types::Fitness;
 
 pub type FoodSource<T> = Vec<T>;
-pub type Fitness = f64;
 
 pub type GenerateFuncRaw<T> = Box<dyn Fn() -> FoodSource<T>>;
 pub type GenerateFunc<T> = fn() -> FoodSource<T>;
