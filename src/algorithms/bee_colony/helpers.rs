@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
-use crate::algorithms::bee_colony::bee::Bee;
 use crate::algorithms::types::Purpose;
+use crate::algorithms::individual::Individual as Bee;
 
 pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Bee<T>, &Bee<T>) -> Ordering + '_ {
     let stub = match purpose {

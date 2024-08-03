@@ -3,8 +3,8 @@ use rand::thread_rng;
 use random_choice::random_choice;
 use crate::algorithms::types::{Purpose};
 use super::types::{FitnessFuncRaw, ResearchFuncRaw, GenerateFuncRaw};
-use super::bee::{Bee};
 use super::helpers;
+use crate::algorithms::individual::Individual as Bee;
 
 pub struct BeeColonyAlgorithm<T> {
     pub actors_count: usize,

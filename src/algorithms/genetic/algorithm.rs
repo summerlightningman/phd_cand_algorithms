@@ -1,20 +1,19 @@
 use crate::algorithms::individual::Individual;
-use crate::algorithms::genetic::types::{CrossoverFunc, FitnessFuncRaw, GenerateFuncRaw, Population};
+use crate::algorithms::genetic::types::{CrossoverFunc, GenerateFuncRaw, MutateFuncRaw, Population, SelectFuncRaw};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
-use rand::rngs::ThreadRng;
-use crate::algorithms::types::{Purpose};
+use crate::algorithms::types::{FitnessFuncs, Purpose};
 use super::helpers::compare_by_fitness;
 
 pub struct GeneticAlgorithm<T> {
-    pub fitness_funcs: Vec<FitnessFuncRaw<T>>,
+    pub fitness_funcs: FitnessFuncs<T>,
     pub actors_count: usize,
     pub iters_count: u64,
     pub solutions_count: usize,
     pub p_mutation: f32,
     pub crossover_func: CrossoverFunc<T>,
-    pub mutate_func: Box<dyn Fn(Vec<T>, &mut ThreadRng) -> Vec<T>>,
-    pub select_func: Box<dyn Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T>>,
+    pub mutate_func: MutateFuncRaw<T>,
+    pub select_func: SelectFuncRaw<T>,
     pub generate_func: GenerateFuncRaw<T>,
     pub purpose: Purpose,
 }

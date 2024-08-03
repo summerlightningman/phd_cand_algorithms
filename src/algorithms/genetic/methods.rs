@@ -11,7 +11,7 @@ pub struct Select;
 pub struct Mutate;
 
 impl Crossover {
-    pub fn one_point<T: Clone>(point_idx: Option<usize>) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+    pub fn one_point<T: Clone>(point_idx: Option<usize>) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Vec<T>, Vec<T>) {
         return move |a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng| {
             let idx = if let Some(val) = point_idx {
                 val
@@ -26,14 +26,11 @@ impl Crossover {
             let mut child_b_value = b_left.to_vec();
             child_b_value.extend(a_right.to_vec());
 
-            (
-                Individual::new(child_b_value, None),
-                Individual::new(child_a_value, None)
-            )
+            (child_a_value, child_b_value)
         };
     }
 
-    pub fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+    pub fn two_points<T: Copy>(points_range: (Option<usize>, Option<usize>)) -> impl Fn(&Individual<T>, &Individual<T>, &mut ThreadRng) -> (Vec<T>, Vec<T>) {
         return move |a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng| {
             let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), points_range, rng);
             let mut values_left: Vec<T> = Vec::with_capacity(a.value.len());
@@ -46,14 +43,11 @@ impl Crossover {
             values_right.extend_from_slice(&a.value[point_left..point_right]);
             values_right.extend_from_slice(&b.value[point_right..]);
 
-            (
-                Individual::new(values_left, None),
-                Individual::new(values_right, None),
-            )
+            (values_left, values_right)
         };
     }
 
-    pub fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng) -> (Individual<T>, Individual<T>) {
+    pub fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng) -> (Vec<T>, Vec<T>) {
         let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), (None, None), rng);
         let value_length = a.value.len();
 
