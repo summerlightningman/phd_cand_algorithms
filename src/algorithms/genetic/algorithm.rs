@@ -29,30 +29,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
             population.push(Individual::with_fitnesses(value, &self.fitness_funcs));
         }
 
-        let fitnesses_min: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
-            population.iter().map(|ind| ind.fitnesses[idx]).filter(|fitness| fitness.is_some()).collect().min()
-        }).collect();
-        let fitnesses_max: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
-            population.iter().map(|ind| ind.fitnesses[idx]).filter(|fitness| fitness.is_some()).collect().max()
-        }).collect();
-        let fitnesses_diff: Vec<f64> = (0..self.fitness_funcs.len()).map(|idx| {
-           fitnesses_max[idx] - fitnesses_min[idx]
-        }).collect();
-
-        'outer: for ind in population.iter_mut() {
-            let mut fitness = 0.;
-
-            for (idx, fitness_raw) in ind.fitnesses.iter().enumerate() {
-                if let Some(fitness_raw) = fitness_raw {
-                    fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
-                } else {
-                    ind.fitness = None;
-                    continue 'outer
-                }
-            }
-
-            ind.fitness = Some(fitness);
-        }
+        self.calculate_fitnesses(&mut population);
 
         for _ in 0..self.iters_count {
             // SELECTION
@@ -79,20 +56,11 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
                     child_2.value
                 };
 
-                if let Some(child_1_fitness) = (self.fitness_func)(&child_1_value) {
-                    new_population.push(Individual {
-                        value: child_1_value,
-                        fitness: Some(child_1_fitness),
-                    });
-                }
-
-                if let Some(child_2_fitness) = (self.fitness_func)(&child_2_value) {
-                    new_population.push(Individual {
-                        value: child_2_value,
-                        fitness: Some(child_2_fitness),
-                    });
-                }
+                new_population.push(Individual::with_fitnesses(child_1_value, &self.fitness_funcs));
+                new_population.push(Individual::with_fitnesses(child_2_value, &self.fitness_funcs));
             }
+
+            self.calculate_fitnesses(&mut population);
 
             population.extend(new_population);
             population.sort_by(compare_by_fitness(&self.purpose));
@@ -110,11 +78,56 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
                 None => return true
             };
 
-            return fitness_a.partial_cmp(&fitness_b).is_eq()
+            return fitness_a == fitness_b
         });
         population.sort_by(compare_by_fitness(&self.purpose));
         population.truncate(self.solutions_count);
         population.shrink_to_fit();
         Ok(population)
+    }
+
+    fn fitnesses_min_diff(&self, population: &Population<T>) -> (Vec<f32>, Vec<f32>) {
+        let fitness_funcs_len = self.fitness_funcs.len();
+
+        let mut min = vec![f32::MAX; fitness_funcs_len];
+        let mut max = vec![f32::MIN; fitness_funcs_len];
+
+        for idx in 0..fitness_funcs_len {
+            for ind in population {
+                if let Some(fitness) = ind.fitnesses[idx] {
+                    if fitness < min[idx] {
+                        min[idx] = fitness;
+                    }
+                    if fitness > max[idx] {
+                        max[idx] = fitness;
+                    }
+                }
+            }
+        }
+
+        let diff = max.iter().zip(min.iter()).map(|(max_val, min_val)| {
+            max_val - min_val
+        }).collect();
+
+        (min, diff)
+    }
+
+    fn calculate_fitnesses(&self, population: &mut Population<T>) {
+        let (fitnesses_min, fitnesses_diff) = self.fitnesses_min_diff(&population);
+
+        'outer: for ind in population.iter_mut() {
+            let mut fitness = 0.;
+
+            for (idx, fitness_raw) in ind.fitnesses.iter().enumerate() {
+                if let Some(fitness_raw) = fitness_raw {
+                    fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
+                } else {
+                    ind.fitness = None;
+                    continue 'outer
+                }
+            }
+
+            ind.fitness = Some(fitness);
+        }
     }
 }

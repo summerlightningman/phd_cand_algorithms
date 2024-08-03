@@ -1,4 +1,3 @@
-use crate::algorithms::genetic::types::FitnessFuncRaw;
 use crate::algorithms::types::{Fitness, FitnessFuncs};
 
 #[derive(Clone, Debug)]
