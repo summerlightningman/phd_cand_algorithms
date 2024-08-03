@@ -1,6 +1,7 @@
 use rand::Rng;
 use rand::distributions::{WeightedIndex, Distribution};
 use rand::rngs::ThreadRng;
+use crate::algorithms::types::{FitnessFuncs, Population};
 
 pub fn generate_two_points(offset_: Option<usize>, seq_length: usize, rng: &mut ThreadRng) -> (usize, usize) {
     if seq_length <= 1 {
@@ -65,3 +66,47 @@ pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: 
     }).collect()
 }
 
+fn fitnesses_min_diff<T>(population: &Population<T>, fitness_funcs: &FitnessFuncs<T>) -> (Vec<f32>, Vec<f32>) {
+    let fitness_funcs_len = fitness_funcs.len();
+
+    let mut min = vec![f32::MAX; fitness_funcs_len];
+    let mut max = vec![f32::MIN; fitness_funcs_len];
+
+    for idx in 0..fitness_funcs_len {
+        for ind in population {
+            if let Some(fitness) = ind.fitnesses[idx] {
+                if fitness < min[idx] {
+                    min[idx] = fitness;
+                }
+                if fitness > max[idx] {
+                    max[idx] = fitness;
+                }
+            }
+        }
+    }
+
+    let diff = max.iter().zip(min.iter()).map(|(max_val, min_val)| {
+        max_val - min_val
+    }).collect();
+
+    (min, diff)
+}
+
+pub fn calculate_fitnesses<T>(population: &mut Population<T>, fitness_funcs: &FitnessFuncs<T>) {
+    let (fitnesses_min, fitnesses_diff) = fitnesses_min_diff(&population, fitness_funcs);
+
+    'outer: for ind in population.iter_mut() {
+        let mut fitness = 0.;
+
+        for (idx, fitness_raw) in ind.fitnesses.iter().enumerate() {
+            if let Some(fitness_raw) = fitness_raw {
+                fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
+            } else {
+                ind.fitness = None;
+                continue 'outer
+            }
+        }
+
+        ind.fitness = Some(fitness);
+    }
+}

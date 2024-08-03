@@ -1,3 +1,4 @@
+use crate::algorithms::individual::Individual;
 use crate::problems::travelling_salesman::types::{City};
 
 #[derive(Clone, Copy)]
@@ -16,3 +17,4 @@ pub struct Solution {
 pub type Fitness = Option<f32>;
 pub type FitnessFuncRaw<T> = Box<dyn Fn(&Vec<T>) -> Fitness>;
 pub type FitnessFuncs<T> = Vec<FitnessFuncRaw<T>>;
+pub type Population<T> = Vec<Individual<T>>;

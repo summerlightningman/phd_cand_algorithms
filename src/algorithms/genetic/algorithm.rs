@@ -1,9 +1,13 @@
-use crate::algorithms::individual::Individual;
-use crate::algorithms::genetic::types::{CrossoverFunc, GenerateFuncRaw, MutateFuncRaw, Population, SelectFuncRaw};
+use crate::algorithms::{
+    individual::Individual,
+    genetic::types::{CrossoverFunc, GenerateFuncRaw, MutateFuncRaw, Population, SelectFuncRaw},
+    types::{FitnessFuncs, Purpose},
+    helpers::calculate_fitnesses
+};
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
-use crate::algorithms::types::{FitnessFuncs, Purpose};
 use super::helpers::compare_by_fitness;
+
 
 pub struct GeneticAlgorithm<T> {
     pub fitness_funcs: FitnessFuncs<T>,
@@ -28,7 +32,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
             population.push(Individual::with_fitnesses(value, &self.fitness_funcs));
         }
 
-        self.calculate_fitnesses(&mut population);
+        calculate_fitnesses(&mut population, &self.fitness_funcs);
 
         for _ in 0..self.iters_count {
             // SELECTION
@@ -59,7 +63,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
                 new_population.push(Individual::with_fitnesses(child_2_value, &self.fitness_funcs));
             }
 
-            self.calculate_fitnesses(&mut population);
+            calculate_fitnesses(&mut population, &self.fitness_funcs);
 
             population.extend(new_population);
             population.sort_by(compare_by_fitness(&self.purpose));
@@ -83,50 +87,5 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
         population.truncate(self.solutions_count);
         population.shrink_to_fit();
         Ok(population)
-    }
-
-    fn fitnesses_min_diff(&self, population: &Population<T>) -> (Vec<f32>, Vec<f32>) {
-        let fitness_funcs_len = self.fitness_funcs.len();
-
-        let mut min = vec![f32::MAX; fitness_funcs_len];
-        let mut max = vec![f32::MIN; fitness_funcs_len];
-
-        for idx in 0..fitness_funcs_len {
-            for ind in population {
-                if let Some(fitness) = ind.fitnesses[idx] {
-                    if fitness < min[idx] {
-                        min[idx] = fitness;
-                    }
-                    if fitness > max[idx] {
-                        max[idx] = fitness;
-                    }
-                }
-            }
-        }
-
-        let diff = max.iter().zip(min.iter()).map(|(max_val, min_val)| {
-            max_val - min_val
-        }).collect();
-
-        (min, diff)
-    }
-
-    fn calculate_fitnesses(&self, population: &mut Population<T>) {
-        let (fitnesses_min, fitnesses_diff) = self.fitnesses_min_diff(&population);
-
-        'outer: for ind in population.iter_mut() {
-            let mut fitness = 0.;
-
-            for (idx, fitness_raw) in ind.fitnesses.iter().enumerate() {
-                if let Some(fitness_raw) = fitness_raw {
-                    fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
-                } else {
-                    ind.fitness = None;
-                    continue 'outer
-                }
-            }
-
-            ind.fitness = Some(fitness);
-        }
     }
 }

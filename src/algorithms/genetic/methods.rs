@@ -47,7 +47,7 @@ impl Crossover {
         };
     }
 
-    pub fn ordered<T: Clone + std::cmp::PartialEq>(a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng) -> (Vec<T>, Vec<T>) {
+    pub fn ordered<T: Clone + PartialEq>(a: &Individual<T>, b: &Individual<T>, rng: &mut ThreadRng) -> (Vec<T>, Vec<T>) {
         let (point_left, point_right) = helpers::process_two_points_or_generate(a.value.len(), (None, None), rng);
         let value_length = a.value.len();
 
@@ -81,8 +81,8 @@ impl Crossover {
         run(b, &mut child_b_value);
 
         (
-            Individual::new(child_a_value.into_iter().filter_map(|el| el).collect(), None),
-            Individual::new(child_b_value.into_iter().filter_map(|el| el).collect(), None)
+            child_a_value.into_iter().filter_map(|i| Some(i).unwrap()).collect(),
+            child_b_value.into_iter().filter_map(|i| Some(i.unwrap())).collect()
         )
     }
 }
