@@ -6,3 +6,4 @@ pub mod genetic;
 pub mod constants;
 mod helpers;
 pub mod individual;
+pub mod solution;

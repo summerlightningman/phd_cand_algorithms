@@ -6,7 +6,7 @@ use super::types::{City, Matrix, PheromoneMatrix};
 use super::utils::calculate_distance;
 
 use random_choice::random_choice;
-use crate::algorithms::types::Solution;
+use crate::algorithms::solution::Solution;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {

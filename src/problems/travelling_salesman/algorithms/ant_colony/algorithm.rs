@@ -4,7 +4,7 @@ use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
 use crate::algorithms::ant_colony::utils::calculate_distance;
-use crate::algorithms::types::Solution;
+use crate::algorithms::solution::Solution;
 use crate::problems::travelling_salesman::rules::Rule;
 use crate::problems::travelling_salesman::rules::apply_rules;
 use lru::LruCache;

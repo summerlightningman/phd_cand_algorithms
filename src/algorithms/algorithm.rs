@@ -1,4 +1,4 @@
-use super::types::Solution;
+use super::solution::Solution;
 
 pub trait OptimizationAlgorithm {
     fn run(&self) -> Result<Vec<Solution>, &str>;

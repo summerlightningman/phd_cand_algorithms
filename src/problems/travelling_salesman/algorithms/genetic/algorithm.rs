@@ -1,7 +1,7 @@
 use crate::algorithms::algorithm::OptimizationAlgorithm;
 use crate::problems::travelling_salesman::types::{City};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
-use crate::algorithms::types::Solution;
+use crate::algorithms::solution::Solution;
 
 
 pub struct TSGeneticAlgorithm {
