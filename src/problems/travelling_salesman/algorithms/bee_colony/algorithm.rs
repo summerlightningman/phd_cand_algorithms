@@ -17,6 +17,7 @@ impl TSBeeColonyAlgorithm {
                 solutions.push(Solution {
                     path: bee.value,
                     distance: helpers::calculate_distance(bee.value),
+                    time: None
                 });
             }
 

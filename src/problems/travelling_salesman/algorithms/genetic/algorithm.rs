@@ -8,12 +8,13 @@ pub struct TSGeneticAlgorithm {
 }
 
 impl TSGeneticAlgorithm {
-    fn run(&self) -> Result<Vec<Solution>, &'static str> {
+    pub fn run(&self) -> Result<Vec<Solution>, &'static str> {
         let population = self.algo.run().unwrap();
         let mut solutions: Vec<Solution> = Vec::new();
 
         for ind in population.into_iter() {
-            if let Some(_) = ind.fitness {
+            if ind.fitness.is_some() {
+
                 solutions.push(Solution {
                     path: ind.value,
                     distance: 0.,

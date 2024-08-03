@@ -9,7 +9,8 @@ pub struct Solution {
 
 impl Debug for Solution {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut ds = f.debug_struct("TSSolution")
+        let mut binding = f.debug_struct("TSSolution");
+        let mut ds = binding
             .field("path", &self.path)
             .field("distance", &self.distance);
 

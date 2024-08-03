@@ -1,9 +1,9 @@
-use crate::algorithms::types::{Fitness, FitnessFuncs};
+use crate::algorithms::types::{Fitness, FitnessFuncs, FitnessRaw};
 
 #[derive(Clone, Debug)]
 pub struct Individual<T> {
     pub value: Vec<T>,
-    pub fitnesses: Vec<Fitness>,
+    pub fitnesses: Vec<FitnessRaw>,
     pub fitness: Fitness,
 }
 

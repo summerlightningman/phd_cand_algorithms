@@ -26,8 +26,6 @@ impl TSAntColonyAlgorithm {
             let mut iter_pheromone_matrix: PheromoneMatrix = Parent::generate_pheromone_matrix(cities_count);
 
             for ant in colony.iter_mut() {
-                let mut distance: f64 = 0.;
-
                 for _ in 0..cities_count - 1 {
                     let probabilities = self.algo.get_probabilities_list(&ant, &mut pheromone_matrix)?;
                     let city = self.algo.select_city(probabilities)?;
@@ -35,7 +33,7 @@ impl TSAntColonyAlgorithm {
 
                     match self.get_ant_distance(&ant) {
                         Some(d) if d > 0. => {
-                            distance = d;
+                            ant.distance = d;
                             iter_pheromone_matrix[ant.previous_city()][city] += self.algo.q / d
                         },
                         None => continue 'outer,

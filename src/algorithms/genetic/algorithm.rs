@@ -48,15 +48,15 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
 
                 // MUTATION
                 let child_1_value = if rng.gen::<f32>() < self.p_mutation {
-                    (self.mutate_func)(child_1.value, &mut rng)
+                    (self.mutate_func)(child_1, &mut rng)
                 } else {
-                    child_1.value
+                    child_1
                 };
 
                 let child_2_value = if rng.gen::<f32>() < self.p_mutation {
-                    (self.mutate_func)(child_2.value, &mut rng)
+                    (self.mutate_func)(child_2, &mut rng)
                 } else {
-                    child_2.value
+                    child_2
                 };
 
                 new_population.push(Individual::with_fitnesses(child_1_value, &self.fitness_funcs));

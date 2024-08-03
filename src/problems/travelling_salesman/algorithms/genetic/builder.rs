@@ -1,15 +1,15 @@
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
-use crate::algorithms::genetic::types::{FitnessFuncRaw, GenerateFuncRaw, Population};
+use crate::algorithms::genetic::types::{GenerateFuncRaw, Population};
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
-use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::types::{City, Matrix};
 use rand::prelude::SliceRandom;
 use rand::rngs::ThreadRng;
 use crate::algorithms::genetic::methods::Crossover;
-use crate::algorithms::types::Purpose;
-use crate::problems::travelling_salesman::rules::{apply_rules, parse_rules, Rule};
+use crate::algorithms::types::{FitnessFuncRaw, Purpose};
+use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
+use crate::problems::travelling_salesman::rules::{parse_rules, Rule};
 
 pub struct TSGeneticAlgorithmBuilder {
     matrix: Matrix,
@@ -75,18 +75,7 @@ impl TSGeneticAlgorithmBuilder {
         let cities_count = self.matrix.len();
 
         let fitness_funcs = vec![
-            Box::new(move |cities| -> Option<f64> {
-                let penalty: i32 = if self.rules.is_empty() {
-                    0
-                } else {
-                    match apply_rules(cities, &self.rules) {
-                        None => return None,
-                        Some(p) => p
-                    }
-                };
-
-                Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
-            }),
+            Box::new(calculate_distance_with_rules(self.matrix, self.rules)) as FitnessFuncRaw<City>,
         ];
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move |rng: &mut ThreadRng| {

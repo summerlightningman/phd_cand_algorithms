@@ -66,11 +66,11 @@ pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: 
     }).collect()
 }
 
-fn fitnesses_min_diff<T>(population: &Population<T>, fitness_funcs: &FitnessFuncs<T>) -> (Vec<f32>, Vec<f32>) {
+fn fitnesses_min_diff<T>(population: &Population<T>, fitness_funcs: &FitnessFuncs<T>) -> (Vec<f64>, Vec<f64>) {
     let fitness_funcs_len = fitness_funcs.len();
 
-    let mut min = vec![f32::MAX; fitness_funcs_len];
-    let mut max = vec![f32::MIN; fitness_funcs_len];
+    let mut min = vec![f64::MAX; fitness_funcs_len];
+    let mut max = vec![f64::MIN; fitness_funcs_len];
 
     for idx in 0..fitness_funcs_len {
         for ind in population {
@@ -107,6 +107,6 @@ pub fn calculate_fitnesses<T>(population: &mut Population<T>, fitness_funcs: &Fi
             }
         }
 
-        ind.fitness = Some(fitness);
+        ind.fitness = Some(fitness as f32);
     }
 }

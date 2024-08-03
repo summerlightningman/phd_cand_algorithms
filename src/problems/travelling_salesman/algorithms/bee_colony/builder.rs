@@ -4,12 +4,12 @@ use rand::thread_rng;
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
 use crate::algorithms::bee_colony::{
     algorithm::BeeColonyAlgorithm,
-    types::{ResearchFuncRaw, GenerateFuncRaw, FitnessFuncRaw}
+    types::{ResearchFuncRaw, GenerateFuncRaw}
 };
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
-use crate::algorithms::types::Purpose;
-use crate::problems::travelling_salesman::helpers;
-use crate::problems::travelling_salesman::rules::{apply_rules, Rule};
+use crate::algorithms::types::{FitnessFuncRaw, Purpose};
+use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
+use crate::problems::travelling_salesman::rules::{Rule};
 use crate::problems::travelling_salesman::types::{Matrix, City};
 use super::algorithm::TSBeeColonyAlgorithm;
 
@@ -67,18 +67,9 @@ impl BeeColonyAlgorithmBuilder {
     pub fn build(self) -> TSBeeColonyAlgorithm {
         let cities_count = self.matrix.len();
 
-        let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| -> Option<f64> {
-            let penalty: i32 = if self.rules.is_empty() {
-                0
-            } else {
-                match apply_rules(cities, &self.rules) {
-                    None => return None,
-                    Some(p) => p
-                }
-            };
-
-            Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
-        });
+        let fitness_funcs = vec![
+            Box::new(calculate_distance_with_rules(self.matrix, self.rules)) as FitnessFuncRaw<City>,
+        ];
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move || {
             let mut rng = thread_rng();
@@ -94,7 +85,7 @@ impl BeeColonyAlgorithmBuilder {
                 solutions_count: self.solutions_count,
                 workers_part: self.workers_part,
                 purpose: Purpose::Min,
-                fitness_funcs: vec![Box::new(fitness_func)],
+                fitness_funcs,
                 research_func: self.research_func,
                 generate_func: Box::new(generate_func),
             }
