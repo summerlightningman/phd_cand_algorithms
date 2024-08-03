@@ -12,7 +12,7 @@ use super::helpers::compare_by_fitness;
 pub struct GeneticAlgorithm<T> {
     pub fitness_funcs: FitnessFuncs<T>,
     pub actors_count: usize,
-    pub iters_count: u64,
+    pub iters_count: usize,
     pub solutions_count: usize,
     pub p_mutation: f32,
     pub crossover_func: CrossoverFunc<T>,
@@ -25,7 +25,7 @@ pub struct GeneticAlgorithm<T> {
 impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
     pub fn run(&self) -> Result<Population<T>, &str> {
         let mut rng = thread_rng();
-        let mut population: Population<T> = Vec::with_capacity(self.actors_count);
+        let mut population: Population<T> = Vec::with_capacity(self.actors_count );
 
         for _ in 0..self.actors_count {
             let value = (self.generate_func)(&mut rng);
@@ -37,7 +37,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
         for _ in 0..self.iters_count {
             // SELECTION
             population = (self.select_func)(population, &self.purpose, &mut rng);
-            let mut new_population: Population<T> = Vec::with_capacity(self.actors_count);
+            let mut new_population: Population<T> = Vec::with_capacity(self.actors_count );
 
             // CROSSOVER
             for individual in &population {
@@ -67,7 +67,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
 
             population.extend(new_population);
             population.sort_by(compare_by_fitness(&self.purpose));
-            population.truncate(self.actors_count);
+            population.truncate(self.actors_count );
         }
 
         population.dedup_by(|a, b| {
@@ -84,7 +84,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
             return fitness_a == fitness_b
         });
         population.sort_by(compare_by_fitness(&self.purpose));
-        population.truncate(self.solutions_count);
+        population.truncate(self.solutions_count );
         population.shrink_to_fit();
         Ok(population)
     }

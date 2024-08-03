@@ -12,7 +12,7 @@ pub struct TSAntColonyAlgorithmBuilder {
     rules: Vec<Rule>,
     penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
     actors_count: usize,
-    iters_count: u64,
+    iters_count: usize,
     solutions_count: usize,
     p: f64,
     q: f64,
@@ -45,7 +45,7 @@ impl TSAntColonyAlgorithmBuilder {
         self
     }
 
-    fn iters_count(mut self, iters_count: u64) -> Self {
+    fn iters_count(mut self, iters_count: usize) -> Self {
         self.iters_count = iters_count;
         self
     }

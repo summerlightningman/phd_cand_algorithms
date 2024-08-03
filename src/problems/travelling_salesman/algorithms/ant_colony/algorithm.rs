@@ -4,7 +4,6 @@ use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
 use crate::algorithms::ant_colony::utils::calculate_distance;
-use crate::algorithms::solution::Solution;
 use crate::problems::travelling_salesman::rules::Rule;
 use crate::problems::travelling_salesman::rules::apply_rules;
 use lru::LruCache;
@@ -16,10 +15,10 @@ pub struct TSAntColonyAlgorithm {
 }
 
 impl TSAntColonyAlgorithm {
-    fn run(&self) -> Result<Vec<Solution>, &str> {
+    fn run(&self) -> Result<Vec<Ant>, &str> {
         let cities_count = self.algo.cities_count();
         let mut pheromone_matrix: PheromoneMatrix = Parent::generate_pheromone_matrix(cities_count);
-        let mut solutions: Vec<Solution> = Vec::new();
+        let mut solutions: Vec<Ant> = Vec::new();
         let mut rng = thread_rng();
         let mut colony: Vec<Ant> = (0..self.algo.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
 
@@ -45,10 +44,7 @@ impl TSAntColonyAlgorithm {
                 }
 
                 if ant.path.len() == self.algo.cities_count() {
-                    solutions.push(Solution {
-                        path: ant.path.clone(),
-                        distance,
-                    });
+                    solutions.push(ant.clone());
                 }
                 ant.reset_path();
             }

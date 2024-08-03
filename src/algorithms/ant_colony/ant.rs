@@ -5,13 +5,16 @@ use rand::rngs::ThreadRng;
 #[derive(Debug, Clone)]
 pub struct Ant {
     pub path: Vec<City>,
+    pub distance: f64
 }
 
 impl Ant {
     pub fn new(cities_count: usize, rng: &mut ThreadRng) -> Self {
-        let path: Vec<City> = vec![rng.gen_range(0..cities_count), ];
+        let first_city: City = rng.gen_range(0..cities_count);
+        let mut path: Vec<City> = Vec::with_capacity(cities_count);
+        path.push(first_city);
 
-        Self { path }
+        Self { path, distance: 0. }
     }
 
     pub fn current_city(&self) -> City {

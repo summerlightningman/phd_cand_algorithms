@@ -1,16 +1,14 @@
 use rand::thread_rng;
-use crate::algorithms::algorithm::OptimizationAlgorithm;
 
 use super::ant::Ant;
 use super::types::{City, Matrix, PheromoneMatrix};
 use super::utils::calculate_distance;
 
 use random_choice::random_choice;
-use crate::algorithms::solution::Solution;
 
 #[derive(Debug)]
 pub struct AntColonyAlgorithm {
-    pub iters_count: u64,
+    pub iters_count: usize,
     pub actors_count: usize,
     pub solutions_count: usize,
     pub alpha: f64,
@@ -20,53 +18,9 @@ pub struct AntColonyAlgorithm {
     pub matrix: Matrix,
 }
 
-impl OptimizationAlgorithm for AntColonyAlgorithm {
-    fn run(&self) -> Result<Vec<Solution>, &str> {
-        let cities_count = self.cities_count();
-        let mut pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
-        let mut solutions: Vec<Solution> = Vec::new();
-        let mut rng = thread_rng();
-        let mut colony: Vec<Ant> = (0..self.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
-
-        for _ in 1..=self.iters_count {
-            let mut iter_pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
-
-            for ant in colony.iter_mut() {
-                let mut distance: f64 = 0.;
-
-                for _ in 0..cities_count - 1 {
-                    let probabilities = self.get_probabilities_list(&ant, &mut pheromone_matrix)?;
-                    let city = self.select_city(probabilities)?;
-                    ant.go_to(city);
-
-                    distance = self.get_ant_distance(&ant);
-                    if distance > 0. {
-                        iter_pheromone_matrix[ant.previous_city()][city] += self.q / distance
-                    }
-                }
-
-                if ant.path.len() == self.cities_count() {
-                    solutions.push(Solution {
-                        path: ant.path.clone(),
-                        distance,
-                    });
-                }
-                ant.reset_path();
-            }
-
-            solutions.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-            solutions = solutions[..solutions.len().min(self.solutions_count)].to_owned();
-
-            self.vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
-        }
-
-        Ok(solutions.clone())
-    }
-}
-
 impl AntColonyAlgorithm {
     pub fn new(
-        iters_count: u64,
+        iters_count: usize,
         solutions_count: usize,
         actors_count: usize,
         alpha: f64,
@@ -87,12 +41,49 @@ impl AntColonyAlgorithm {
         }
     }
 
+    fn run(&self) -> Result<Vec<Ant>, &str> {
+        let cities_count = self.cities_count();
+        let mut pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
+        let mut solutions: Vec<Ant> = Vec::new();
+        let mut rng = thread_rng();
+        let mut colony: Vec<Ant> = (0..self.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
+
+        for _ in 1..=self.iters_count {
+            let mut iter_pheromone_matrix: PheromoneMatrix = Self::generate_pheromone_matrix(cities_count);
+
+            for ant in colony.iter_mut() {
+                for _ in 0..cities_count - 1 {
+                    let probabilities = self.get_probabilities_list(&ant, &mut pheromone_matrix)?;
+                    let city = self.select_city(probabilities)?;
+                    ant.go_to(city);
+
+                    ant.distance = self.get_ant_distance(&ant);
+                    if ant.distance > 0. {
+                        iter_pheromone_matrix[ant.previous_city()][city] += self.q / ant.distance
+                    }
+                }
+
+                if ant.path.len() == self.cities_count() {
+                    solutions.push(ant.clone());
+                }
+                ant.reset_path();
+            }
+
+            solutions.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+            solutions.truncate(self.solutions_count );
+
+            self.vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
+        }
+
+        Ok(solutions)
+    }
+
     pub fn cities_count(&self) -> usize {
-        self.matrix.len()
+        self.matrix.len() as usize
     }
 
     fn cities_list(&self) -> Vec<City> {
-        (0..self.cities_count()).collect()
+        (0..self.cities_count() ).collect()
     }
 
     fn get_ant_visibility(&self, ant: &Ant, city: &City) -> f64 {

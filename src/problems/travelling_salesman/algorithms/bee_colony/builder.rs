@@ -17,14 +17,14 @@ pub struct BeeColonyAlgorithmBuilder {
     pub matrix: Matrix,
     pub rules: Vec<Rule>,
     pub actors_count: usize,
-    pub iters_count: u64,
+    pub iters_count: usize,
     pub solutions_count: usize,
     pub workers_part: f32,
     pub research_func: ResearchFuncRaw<City>,
 }
 
 impl OptimizationAlgorithmBuilder for BeeColonyAlgorithmBuilder {
-    fn iters_count(mut self, iters_count: u64) -> Self {
+    fn iters_count(mut self, iters_count: usize) -> Self {
         self.iters_count = iters_count;
         self
     }
@@ -94,7 +94,7 @@ impl BeeColonyAlgorithmBuilder {
                 solutions_count: self.solutions_count,
                 workers_part: self.workers_part,
                 purpose: Purpose::Min,
-                fitness_func: Box::new(fitness_func),
+                fitness_funcs: vec![Box::new(fitness_func)],
                 research_func: self.research_func,
                 generate_func: Box::new(generate_func),
             }

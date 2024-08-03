@@ -14,7 +14,7 @@ use crate::problems::travelling_salesman::rules::{apply_rules, parse_rules, Rule
 pub struct TSGeneticAlgorithmBuilder {
     matrix: Matrix,
     actors_count: usize,
-    iters_count: u64,
+    iters_count: usize,
     solutions_count: usize,
     p_mutation: f32,
     mutate_func: Box<dyn Fn(Vec<City>, &mut ThreadRng) -> Vec<City>>,
@@ -23,7 +23,7 @@ pub struct TSGeneticAlgorithmBuilder {
 }
 
 impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
-    fn iters_count(mut self, iters_count: u64) -> Self {
+    fn iters_count(mut self, iters_count: usize) -> Self {
         self.iters_count = iters_count;
         self
     }
@@ -74,18 +74,20 @@ impl TSGeneticAlgorithmBuilder {
     pub fn build(self) -> TSGeneticAlgorithm {
         let cities_count = self.matrix.len();
 
-        let fitness_func: FitnessFuncRaw<City> = Box::new(move |cities| -> Option<f64> {
-            let penalty: i32 = if self.rules.is_empty() {
-                0
-            } else {
-                match apply_rules(cities, &self.rules) {
-                    None => return None,
-                    Some(p) => p
-                }
-            };
+        let fitness_funcs = vec![
+            Box::new(move |cities| -> Option<f64> {
+                let penalty: i32 = if self.rules.is_empty() {
+                    0
+                } else {
+                    match apply_rules(cities, &self.rules) {
+                        None => return None,
+                        Some(p) => p
+                    }
+                };
 
-            Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
-        });
+                Some(helpers::calculate_distance(&self.matrix, &cities) + penalty as f64)
+            }),
+        ];
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move |rng: &mut ThreadRng| {
             let mut value: Vec<usize> = (0..cities_count).collect();
@@ -95,7 +97,7 @@ impl TSGeneticAlgorithmBuilder {
 
         TSGeneticAlgorithm {
             algo: GeneticAlgorithm {
-                fitness_func,
+                fitness_funcs,
                 generate_func,
                 purpose: Purpose::Min,
                 actors_count: self.actors_count,

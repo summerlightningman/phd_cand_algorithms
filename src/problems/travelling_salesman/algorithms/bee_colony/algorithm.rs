@@ -1,4 +1,3 @@
-use crate::algorithms::algorithm::OptimizationAlgorithm;
 use crate::algorithms::solution::Solution;
 use crate::problems::travelling_salesman::types::{City};
 use crate::algorithms::bee_colony::algorithm::BeeColonyAlgorithm;
@@ -8,13 +7,13 @@ pub struct TSBeeColonyAlgorithm {
     pub algo: BeeColonyAlgorithm<City>,
 }
 
-impl OptimizationAlgorithm for TSBeeColonyAlgorithm {
+impl TSBeeColonyAlgorithm {
     fn run(&self) -> Result<Vec<Solution>, &'static str> {
         let workers = self.algo.run().unwrap();
         let mut solutions: Vec<Solution> = Vec::new();
 
         for bee in workers.into_iter() {
-            if let Some(distance) = bee.fitness {
+            if bee.fitness.is_some() {
                 solutions.push(Solution {
                     path: bee.value,
                     distance: helpers::calculate_distance(bee.value),

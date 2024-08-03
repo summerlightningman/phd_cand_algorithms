@@ -9,7 +9,7 @@ use crate::algorithms::individual::Individual as Bee;
 
 pub struct BeeColonyAlgorithm<T> {
     pub actors_count: usize,
-    pub iters_count: u64,
+    pub iters_count: usize,
     pub solutions_count: usize,
     pub workers_part: f32,
     pub purpose: Purpose,
@@ -73,7 +73,7 @@ impl<T: Clone + Debug> BeeColonyAlgorithm<T> {
             return fitness_a.total_cmp(&fitness_b).is_eq()
         });
         workers.sort_by(helpers::compare_by_fitness(&self.purpose));
-        workers.truncate(self.solutions_count);
+        workers.truncate(self.solutions_count );
         Ok(workers)
     }
 

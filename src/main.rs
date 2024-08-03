@@ -1,7 +1,6 @@
 mod algorithms;
 mod problems;
 
-use algorithms::algorithm::OptimizationAlgorithm;
 use std::time::{Instant};
 use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
 use algorithms::genetic::methods::{Mutate, Select};
