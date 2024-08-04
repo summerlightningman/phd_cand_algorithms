@@ -14,11 +14,17 @@ impl TSGeneticAlgorithm {
 
         for ind in population.into_iter() {
             if ind.fitness.is_some() {
+                let distance = ind.fitnesses[0].unwrap();
+                let time = if self.algo.fitness_funcs.len() > 1 {
+                    Some(ind.fitnesses[1].unwrap() as usize)
+                } else {
+                    None
+                };
 
                 solutions.push(Solution {
                     path: ind.value,
-                    distance: 0.,
-                    time: None,
+                    distance,
+                    time,
                 });
             }
 
