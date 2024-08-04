@@ -3,6 +3,5 @@ use rand::rngs::ThreadRng;
 pub type FoodSource<T> = Vec<T>;
 
 pub type GenerateFuncRaw<T> = Box<dyn Fn() -> FoodSource<T>>;
-pub type GenerateFunc<T> = fn() -> FoodSource<T>;
 
 pub type ResearchFuncRaw<T> = Box<dyn Fn(&FoodSource<T>, &mut ThreadRng) -> FoodSource<T>>;
