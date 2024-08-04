@@ -1,6 +1,17 @@
 use std::str::FromStr;
 use super::types::City;
 
+/*
+
+    1) City следует за City
+    2) City по порядку Value
+    3) City на дистанции Value
+    4) City на времени Value
+    5) City на дистанции от City Value
+    6) City на дистанции от City Value
+
+*/
+
 #[derive(Debug, PartialEq)]
 enum Constraint {
     Follows(City, City),
