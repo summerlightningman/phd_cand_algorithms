@@ -2,7 +2,7 @@ use rand::thread_rng;
 
 use super::ant::Ant;
 use super::types::{City, Matrix, PheromoneMatrix};
-use super::utils::calculate_distance;
+use crate::problems::travelling_salesman::helpers::calculate_distance;
 
 use random_choice::random_choice;
 
