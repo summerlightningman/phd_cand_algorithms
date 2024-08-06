@@ -4,13 +4,12 @@ use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
 use crate::problems::travelling_salesman::helpers::calculate_distance;
-use crate::problems::travelling_salesman::rules::Rule;
-use crate::problems::travelling_salesman::rules::apply_rules;
 use lru::LruCache;
+use crate::problems::travelling_salesman::types::RuleFn;
 
 pub struct TSAntColonyAlgorithm {
     pub algo: Parent,
-    pub rules: Vec<Rule>,
+    pub rules: Vec<RuleFn>,
     pub penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
 }
 
@@ -61,7 +60,7 @@ impl TSAntColonyAlgorithm {
             Some(0.)
         } else {
             match self.get_penalty(&ant.path) {
-                Some(penalty) => Some(calculate_distance(&ant.path, &self.algo.matrix) + penalty),
+                Some(penalty) => Some(calculate_distance(&self.algo.matrix, &ant.path) + penalty),
                 None => None
             }
         }
@@ -88,17 +87,18 @@ impl TSAntColonyAlgorithm {
     }
 
     fn get_penalty(&self, path: &Vec<City>) -> Option<f64> {
-        let mut cache = self.penalty_cache.borrow_mut();
-        if let Some(&cached_result) = cache.get(path) {
-            return cached_result;
-        }
-
-        let result = match apply_rules(path, &self.rules) {
-            Some(penalty) => Some(penalty as f64),
-            None => None
-        };
-
-        cache.put(path.clone(), result);
-        result
+        return Some(0.)
+        // let mut cache = self.penalty_cache.borrow_mut();
+        // if let Some(&cached_result) = cache.get(path) {
+        //     return cached_result;
+        // }
+        //
+        // let result = match apply_rules(path, &self.rules) {
+        //     Some(penalty) => Some(penalty as f64),
+        //     None => None
+        // };
+        //
+        // cache.put(path.clone(), result);
+        // result
     }
 }

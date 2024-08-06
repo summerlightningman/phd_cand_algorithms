@@ -3,13 +3,12 @@ use std::num::NonZeroUsize;
 use lru::LruCache;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
-use crate::problems::travelling_salesman::rules::Rule;
-use crate::problems::travelling_salesman::types::{City, Matrix};
+use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn};
 use super::algorithm::TSAntColonyAlgorithm;
 
 pub struct TSAntColonyAlgorithmBuilder {
     matrix: Matrix,
-    rules: Vec<Rule>,
+    rules: Vec<RuleFn>,
     penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
     actors_count: usize,
     iters_count: usize,
@@ -52,11 +51,6 @@ impl TSAntColonyAlgorithmBuilder {
 
     fn solutions_count(mut self, solutions_count: usize) -> Self {
         self.solutions_count = solutions_count;
-        self
-    }
-
-    fn rules(mut self, rules: Vec<Rule>) -> Self {
-        self.rules = rules;
         self
     }
 

@@ -3,23 +3,24 @@ use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::genetic::algorithm::GeneticAlgorithm;
 use crate::algorithms::genetic::types::{GenerateFuncRaw, Population};
 use crate::problems::travelling_salesman::algorithms::genetic::algorithm::TSGeneticAlgorithm;
-use crate::problems::travelling_salesman::types::{City, Matrix};
+use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, RuleStr, TimeMatrix};
 use rand::prelude::SliceRandom;
 use rand::rngs::ThreadRng;
 use crate::algorithms::genetic::methods::Crossover;
 use crate::algorithms::types::{FitnessFuncRaw, Purpose};
 use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
-use crate::problems::travelling_salesman::rules::{parse_rules, Rule};
+use crate::problems::travelling_salesman::rules::parse_rule;
 
 pub struct TSGeneticAlgorithmBuilder {
     matrix: Matrix,
+    time_matrix: Option<TimeMatrix>,
     actors_count: usize,
     iters_count: usize,
     solutions_count: usize,
     p_mutation: f32,
     mutate_func: Box<dyn Fn(Vec<City>, &mut ThreadRng) -> Vec<City>>,
     select_func: Box<dyn Fn(Population<City>, &Purpose, &mut ThreadRng) -> Population<City>>,
-    rules: Vec<Rule>,
+    rules: Vec<RuleFn>,
 }
 
 impl OptimizationAlgorithmBuilder for TSGeneticAlgorithmBuilder {
@@ -47,6 +48,7 @@ impl TSGeneticAlgorithmBuilder {
     ) -> Self {
         Self {
             matrix,
+            time_matrix: None,
             mutate_func: Box::new(mutate_func),
             select_func: Box::new(select_func),
             actors_count: ACTORS_COUNT,
@@ -55,6 +57,11 @@ impl TSGeneticAlgorithmBuilder {
             rules: Vec::new(),
             p_mutation: 0.3,
         }
+    }
+
+    pub fn time_matrix(mut self, time_matrix: TimeMatrix) -> Self {
+        self.time_matrix = Some(time_matrix);
+        self
     }
 
     pub fn p_mutation(mut self, p_mutation: f32) -> Self {
@@ -66,8 +73,11 @@ impl TSGeneticAlgorithmBuilder {
         }
     }
 
-    pub fn rules(mut self, rules: Vec<&'static str>) -> Self {
-        self.rules = parse_rules(rules);
+    pub fn rules(mut self, rules: Vec<RuleStr>) -> Self {
+        self.rules = rules.into_iter().map(|rule_str| {
+            parse_rule(rule_str, self.matrix.clone(), self.time_matrix.clone())
+        }).collect();
+
         self
     }
 

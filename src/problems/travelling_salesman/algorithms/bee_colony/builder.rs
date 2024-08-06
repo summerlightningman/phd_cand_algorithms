@@ -9,13 +9,12 @@ use crate::algorithms::bee_colony::{
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::types::{FitnessFuncRaw, Purpose};
 use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
-use crate::problems::travelling_salesman::rules::{Rule};
-use crate::problems::travelling_salesman::types::{Matrix, City};
+use crate::problems::travelling_salesman::types::{Matrix, City, RuleFn};
 use super::algorithm::TSBeeColonyAlgorithm;
 
 pub struct BeeColonyAlgorithmBuilder {
     pub matrix: Matrix,
-    pub rules: Vec<Rule>,
+    pub rules: Vec<RuleFn>,
     pub actors_count: usize,
     pub iters_count: usize,
     pub solutions_count: usize,

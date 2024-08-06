@@ -166,7 +166,7 @@ impl AntColonyAlgorithm {
         if ant.path.len() <= 1 {
             0.
         } else {
-            calculate_distance(&ant.path, &self.matrix)
+            calculate_distance(&self.matrix, &ant.path)
         }
     }
 }

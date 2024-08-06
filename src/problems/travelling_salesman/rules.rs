@@ -1,8 +1,8 @@
 use std::ops::{Index, RangeInclusive};
+use eval::eval;
 use regex::Regex;
-use crate::problems::travelling_salesman::types::{City, Matrix, TimeMatrix};
+use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, RuleStr, TimeMatrix};
 use crate::problems::travelling_salesman::helpers::{calculate_distance, calculate_time};
-use eval::{eval};
 
 /*
 
@@ -14,16 +14,6 @@ use eval::{eval};
     6) City на дистанции от City Value
 
 */
-
-#[derive(Debug)]
-enum Condition {
-    Follows(String, String),
-    InOrder(String, u32),
-    OnDistance(String, String),
-    OnDistanceFromCity(String, String, String),
-    OnTime(String, String),
-    OnTimeFromCity(String, String, String),
-}
 
 enum Range {
     Single(i32),
@@ -122,10 +112,10 @@ fn on_time_from_city(city_to: City, city_from: City, time_raw: String, cities: &
     is_time_in_range(cities_range, time_raw, cities, time_matrix)
 }
 
-fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMatrix>) -> impl Fn(&Vec<City>) -> Option<i64> + 'a {
+pub fn parse_rule(s: RuleStr, matrix: Matrix, time_matrix: Option<TimeMatrix>) -> RuleFn {
     // Создаем клонированные строки и регулярные выражения
     let whitespaces_pattern = Regex::new(r"\s{2,}").unwrap();
-    let s_cloned = whitespaces_pattern.replace_all(s, " ").to_string();
+    let s_cloned = whitespaces_pattern.replace_all(&s, " ").to_string();
 
     let operators_pattern = Regex::new(r"\s+(и|или)\s+").unwrap();
     let follows_re = Regex::new(r"(\w+)\s+следует за\s+(\w+)").unwrap();
@@ -138,7 +128,7 @@ fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMa
     let action = s_cloned.split(':').last().unwrap().trim().to_string();
 
     // Возвращаем замыкание
-    move |cities: &Vec<City>| -> Option<i64> {
+    Box::new(move |cities: &Vec<City>| -> Option<i64> {
         let mut condition = s_cloned.replace(" и ", " && ").replace(" или ", " || ");
 
         for part in operators_pattern.replace_all(&s_cloned, "#").split('#') {
@@ -156,18 +146,18 @@ fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMa
                 let city_a = cap[1].parse::<City>().unwrap();
                 let city_b = cap[2].parse::<City>().unwrap();
                 let distance_raw = cap[3].to_string();
-                let result = on_distance_from_city(city_a, city_b, distance_raw, cities, matrix).to_string();
+                let result = on_distance_from_city(city_a, city_b, distance_raw, cities, &matrix).to_string();
                 condition = condition.replace(&cap[0], &result);
             } else if let Some(cap) = on_distance_re.captures(part) {
                 let city = cap[1].parse::<City>().unwrap();
                 let distance_raw = cap[2].to_string();
-                let result = on_distance(city, distance_raw, cities, matrix).to_string();
+                let result = on_distance(city, distance_raw, cities, &matrix).to_string();
                 condition = condition.replace(&cap[0], &result);
             } else if let Some(cap) = on_time_from_city_re.captures(part) {
                 let city_a = cap[1].parse::<City>().unwrap();
                 let city_b = cap[2].parse::<City>().unwrap();
                 let time_raw = cap[3].to_string();
-                let matrix_t = match time_matrix {
+                let matrix_t = match &time_matrix {
                     Some(matrix) => matrix,
                     None => return Some(0)
                 };
@@ -176,7 +166,7 @@ fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMa
             } else if let Some(cap) = on_time_re.captures(part) {
                 let city = cap[1].parse::<City>().unwrap();
                 let time_raw = cap[2].to_string();
-                let matrix_t = match time_matrix {
+                let matrix_t = match &time_matrix {
                     Some(matrix) => matrix,
                     None => return Some(0)
                 };
@@ -195,6 +185,6 @@ fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMa
             }
             _ => Some(0),
         }
-    }
+    })
 }
 

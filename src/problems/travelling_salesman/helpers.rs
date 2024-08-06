@@ -1,6 +1,5 @@
 use crate::algorithms::types::{FitnessFuncRaw};
-use crate::problems::travelling_salesman::rules::{apply_rules, Rule};
-use super::types::{Matrix, City, TimeMatrix};
+use super::types::{Matrix, City, TimeMatrix, RuleFn};
 
 pub fn calculate_distance(matrix: &Matrix, cities: &Vec<City>) -> f64 {
     let mut sum: f64 = 0.;
@@ -32,15 +31,19 @@ pub fn calculate_time(time_matrix: &TimeMatrix, cities: &Vec<City>) -> usize {
     sum
 }
 
-pub fn calculate_distance_with_rules(matrix: Matrix, rules: Vec<Rule>) -> FitnessFuncRaw<City> {
+pub fn calculate_distance_with_rules(matrix: Matrix, rules: Vec<RuleFn>) -> FitnessFuncRaw<City> {
     Box::new(move |cities: &Vec<City>| {
-        let penalty: f64 = if rules.is_empty() {
+        let penalty = if rules.is_empty() {
             0.
         } else {
-            match apply_rules(cities, &rules) {
-                None => return None,
-                Some(p) => p as f64
+            let mut p = 0;
+            for evaluate in rules.iter() {
+                match evaluate(cities) {
+                    Some(pen) => p += pen,
+                    None => return None
+                }
             }
+            p as f64
         };
 
         Some(calculate_distance(&matrix, &cities) + penalty)
