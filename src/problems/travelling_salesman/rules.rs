@@ -122,9 +122,10 @@ fn on_time_from_city(city_to: City, city_from: City, time_raw: String, cities: &
     is_time_in_range(cities_range, time_raw, cities, time_matrix)
 }
 
-fn parse_rule(s: &str, matrix: &Matrix, time_matrix: Option<&TimeMatrix>) -> impl Fn(&Vec<City>) -> Option<i64> {
+fn parse_rule<'a>(s: &'a str, matrix: &'a Matrix, time_matrix: Option<&'a TimeMatrix>) -> impl Fn(&Vec<City>) -> Option<i64> + 'a {
+    // Создаем клонированные строки и регулярные выражения
     let whitespaces_pattern = Regex::new(r"\s{2,}").unwrap();
-    let s = whitespaces_pattern.replace_all(s, " ");
+    let s_cloned = whitespaces_pattern.replace_all(s, " ").to_string();
 
     let operators_pattern = Regex::new(r"\s+(и|или)\s+").unwrap();
     let follows_re = Regex::new(r"(\w+)\s+следует за\s+(\w+)").unwrap();
@@ -134,12 +135,13 @@ fn parse_rule(s: &str, matrix: &Matrix, time_matrix: Option<&TimeMatrix>) -> imp
     let on_time_re = Regex::new(r"(\w+)\s+на времени\s+(\d+|\[.*?\])").unwrap();
     let on_time_from_city_re = Regex::new(r"(\w+)\s+на времени от\s+(\w+)\s+(\d+|\[.*?\])").unwrap();
 
-    let action = s.split(':').last().unwrap().trim();
+    let action = s_cloned.split(':').last().unwrap().trim().to_string();
 
+    // Возвращаем замыкание
     move |cities: &Vec<City>| -> Option<i64> {
-        let mut condition = s.replace(" и ", " && ").replace(" или ", " || ");
+        let mut condition = s_cloned.replace(" и ", " && ").replace(" или ", " || ");
 
-        for part in operators_pattern.replace_all(&s, "#").split('#') {
+        for part in operators_pattern.replace_all(&s_cloned, "#").split('#') {
             if let Some(cap) = follows_re.captures(part) {
                 let city_a = cap[1].parse::<City>().unwrap();
                 let city_b = cap[2].parse::<City>().unwrap();
@@ -195,3 +197,4 @@ fn parse_rule(s: &str, matrix: &Matrix, time_matrix: Option<&TimeMatrix>) -> imp
         }
     }
 }
+
