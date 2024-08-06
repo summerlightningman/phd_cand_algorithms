@@ -60,6 +60,10 @@ impl TSGeneticAlgorithmBuilder {
     }
 
     pub fn time_matrix(mut self, time_matrix: TimeMatrix) -> Self {
+        if time_matrix.len() != self.matrix.len() {
+            panic!("Time matrix size is not equal distance matrix")
+        }
+
         self.time_matrix = Some(time_matrix);
         self
     }

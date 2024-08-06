@@ -9,12 +9,14 @@ use crate::algorithms::bee_colony::{
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::types::{FitnessFuncRaw, Purpose};
 use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
-use crate::problems::travelling_salesman::types::{Matrix, City, RuleFn};
+use crate::problems::travelling_salesman::rules::parse_rule;
+use crate::problems::travelling_salesman::types::{Matrix, City, RuleFn, RuleStr, TimeMatrix};
 use super::algorithm::TSBeeColonyAlgorithm;
 
 pub struct BeeColonyAlgorithmBuilder {
     pub matrix: Matrix,
     pub rules: Vec<RuleFn>,
+    pub time_matrix: Option<TimeMatrix>,
     pub actors_count: usize,
     pub iters_count: usize,
     pub solutions_count: usize,
@@ -46,6 +48,7 @@ impl BeeColonyAlgorithmBuilder {
     ) -> Self {
         Self {
             matrix: matrix,
+            time_matrix: None,
             rules: vec![],
             actors_count: ACTORS_COUNT,
             iters_count: ITERS_COUNT,
@@ -60,6 +63,23 @@ impl BeeColonyAlgorithmBuilder {
             panic!("Workers part value is not correct 0 < {} < 1", workers_part);
         }
         self.workers_part = workers_part;
+        self
+    }
+
+    pub fn rules(mut self, rules: Vec<RuleStr>) -> Self {
+        self.rules = rules.into_iter().map(|rule_str| {
+            parse_rule(rule_str, self.matrix.clone(), self.time_matrix.clone())
+        }).collect();
+
+        self
+    }
+
+    pub fn time_matrix(mut self, time_matrix: TimeMatrix) -> Self {
+        if time_matrix.len() != self.matrix.len() {
+            panic!("Time matrix size is not equal distance matrix")
+        }
+
+        self.time_matrix = Some(time_matrix);
         self
     }
 
