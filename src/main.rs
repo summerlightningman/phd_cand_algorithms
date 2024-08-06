@@ -21,6 +21,19 @@ fn main() {
         vec![31.0, 41.0, 27.0, 13.0, 16.0, 3.0, 99.0, 25.0, 35.0, 0.0],
     ];
 
+    let time_matrix = vec![
+        vec![0, 45, 30, 12, 18, 67, 23, 56, 41, 39],
+        vec![45, 0, 50, 28, 37, 52, 19, 33, 60, 25],
+        vec![30, 50, 0, 15, 63, 42, 71, 44, 22, 58],
+        vec![12, 28, 15, 0, 36, 54, 20, 47, 65, 31],
+        vec![18, 37, 63, 36, 0, 29, 48, 59, 11, 70],
+        vec![67, 52, 42, 54, 29, 0, 35, 16, 62, 40],
+        vec![23, 19, 71, 20, 48, 35, 0, 53, 26, 64],
+        vec![56, 33, 44, 47, 59, 16, 53, 0, 38, 21],
+        vec![41, 60, 22, 65, 11, 62, 26, 38, 0, 57],
+        vec![39, 25, 58, 31, 70, 40, 64, 21, 57, 0],
+    ];
+
     // let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
     //     .iters_count(1000)
     //     .build();
@@ -36,7 +49,11 @@ fn main() {
         matrix.clone(),
         Mutate::swap_indexes(Some(3)),
         Select::tournament(5, Some(0.7)),
-    ).solutions_count(20).p_mutation(0.99).build();
+    )
+        .solutions_count(20)
+        .p_mutation(0.99)
+        .time_matrix(time_matrix)
+        .build();
 
     let ga_time_start = Instant::now();
     let ga_solutions = ga.run().unwrap();

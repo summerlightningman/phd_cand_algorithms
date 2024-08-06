@@ -49,3 +49,13 @@ pub fn calculate_distance_with_rules(matrix: Matrix, rules: Vec<RuleFn>) -> Fitn
         Some(calculate_distance(&matrix, &cities) + penalty)
     })
 }
+
+pub fn time_fitness(time_matrix: Option<TimeMatrix>) -> FitnessFuncRaw<City> {
+    if let Some(t_matrix) = time_matrix {
+        Box::new(move |cities: &Vec<City>| {
+            Some(calculate_time(&t_matrix, cities) as f64)
+        })
+    } else {
+        Box::new(move |_| Some(0.))
+    }
+}

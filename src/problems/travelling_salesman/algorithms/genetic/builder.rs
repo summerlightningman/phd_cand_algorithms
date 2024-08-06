@@ -8,7 +8,7 @@ use rand::prelude::SliceRandom;
 use rand::rngs::ThreadRng;
 use crate::algorithms::genetic::methods::Crossover;
 use crate::algorithms::types::{FitnessFuncRaw, Purpose};
-use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
+use crate::problems::travelling_salesman::helpers::{calculate_distance_with_rules, calculate_time, time_fitness};
 use crate::problems::travelling_salesman::rules::parse_rule;
 
 pub struct TSGeneticAlgorithmBuilder {
@@ -90,6 +90,7 @@ impl TSGeneticAlgorithmBuilder {
 
         let fitness_funcs = vec![
             Box::new(calculate_distance_with_rules(self.matrix, self.rules)) as FitnessFuncRaw<City>,
+            Box::new(time_fitness(self.time_matrix))
         ];
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move |rng: &mut ThreadRng| {
