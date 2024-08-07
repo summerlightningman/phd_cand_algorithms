@@ -59,6 +59,8 @@ impl<T: Clone + Debug> BeeColonyAlgorithm<T> {
             }
         }
 
+        calculate_fitnesses(&mut workers, &self.fitness_funcs);
+
         workers.dedup_by(|a, b| {
             let fitness_a = match a.fitness {
                 Some(fit) => fit,
