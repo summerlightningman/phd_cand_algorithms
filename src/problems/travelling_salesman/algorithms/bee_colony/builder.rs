@@ -8,7 +8,7 @@ use crate::algorithms::bee_colony::{
 };
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
 use crate::algorithms::types::{FitnessFuncRaw, Purpose};
-use crate::problems::travelling_salesman::helpers::calculate_distance_with_rules;
+use crate::problems::travelling_salesman::helpers::{calculate_distance_with_rules, time_fitness};
 use crate::problems::travelling_salesman::rules::parse_rule;
 use crate::problems::travelling_salesman::types::{Matrix, City, RuleFn, RuleStr, TimeMatrix};
 use super::algorithm::TSBeeColonyAlgorithm;
@@ -88,6 +88,7 @@ impl BeeColonyAlgorithmBuilder {
 
         let fitness_funcs = vec![
             Box::new(calculate_distance_with_rules(self.matrix, self.rules)) as FitnessFuncRaw<City>,
+            Box::new(time_fitness(self.time_matrix))
         ];
 
         let generate_func: GenerateFuncRaw<City> = Box::new(move || {

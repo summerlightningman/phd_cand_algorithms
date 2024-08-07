@@ -44,12 +44,33 @@ fn parse_range(s: String) -> Result<Range, String> {
     }
 }
 
+fn index_cb(city: City) -> impl Fn(&City) -> bool {
+    move |c: &City| {
+        *c == city
+    }
+}
+
 fn follows(city_a: City, city_b: City, cities: &Vec<City>) -> bool {
-    cities.index(city_b) - cities.index(city_a) == 1
+    let city_a_idx = cities.iter().position(index_cb(city_a));
+    let city_b_idx = cities.iter().position(index_cb(city_b));
+    if let Some(a_idx) = city_a_idx {
+        if let Some(b_idx) = city_b_idx {
+            a_idx as i32 - b_idx as i32 == 1
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }
 
 fn in_order(city: City, order: usize, cities: &Vec<City>) -> bool {
-    cities.index(city) + 1 == order
+    let city_idx = cities.iter().position(index_cb(city));
+    if let Some(idx) = city_idx {
+        idx + 1 == order
+    } else {
+        false
+    }
 }
 
 fn is_distance_in_range(range: RangeInclusive<usize>, distance_raw: String, cities: &Vec<City>, matrix: &Matrix) -> bool {
@@ -77,14 +98,14 @@ fn is_time_in_range(range: RangeInclusive<usize>, time_raw: String, cities: &Vec
 }
 
 fn on_distance(city: City, distance_raw: String, cities: &Vec<City>, matrix: &Matrix) -> bool {
-    let city_idx = cities.iter().position(|c| *c == city).unwrap();
+    let city_idx = cities.iter().position(index_cb(city)).unwrap();
 
     is_distance_in_range(0..=city_idx, distance_raw, cities, matrix)
 }
 
 fn on_distance_from_city(city_to: City, city_from: City, distance_raw: String, cities: &Vec<City>, matrix: &Matrix) -> bool {
-    let city_to_idx = cities.iter().position(|c| *c == city_to).unwrap();
-    let city_from_idx = cities.iter().position(|c| *c == city_from).unwrap();
+    let city_to_idx = cities.iter().position(index_cb(city_to)).unwrap();
+    let city_from_idx = cities.iter().position(index_cb(city_from)).unwrap();
     let cities_range = if city_from_idx > city_to_idx {
         city_to_idx..=city_from_idx
     } else {
@@ -95,14 +116,14 @@ fn on_distance_from_city(city_to: City, city_from: City, distance_raw: String, c
 }
 
 fn on_time(city: City, time_raw: String, cities: &Vec<City>, time_matrix: &TimeMatrix) -> bool {
-    let city_idx = cities.iter().position(|c| *c == city).unwrap();
+    let city_idx = cities.iter().position(index_cb(city)).unwrap();
 
     is_time_in_range(0..=city_idx, time_raw, cities, time_matrix)
 }
 
 fn on_time_from_city(city_to: City, city_from: City, time_raw: String, cities: &Vec<City>, time_matrix: &TimeMatrix) -> bool {
-    let city_to_idx = cities.iter().position(|c| *c == city_to).unwrap();
-    let city_from_idx = cities.iter().position(|c| *c == city_from).unwrap();
+    let city_to_idx = cities.iter().position(index_cb(city_to)).unwrap();
+    let city_from_idx = cities.iter().position(index_cb(city_from)).unwrap();
     let cities_range = if city_from_idx > city_to_idx {
         city_to_idx..=city_from_idx
     } else {
@@ -125,11 +146,14 @@ pub fn parse_rule(s: RuleStr, matrix: Matrix, time_matrix: Option<TimeMatrix>) -
     let on_time_re = Regex::new(r"(\w+)\s+на времени\s+(\d+|\[.*?\])").unwrap();
     let on_time_from_city_re = Regex::new(r"(\w+)\s+на времени от\s+(\w+)\s+(\d+|\[.*?\])").unwrap();
 
-    let action = s_cloned.split(':').last().unwrap().trim().to_string();
+    // let action = s_cloned.split(':').last().unwrap().trim().to_string();
 
     // Возвращаем замыкание
     Box::new(move |cities: &Vec<City>| -> Option<i64> {
-        let mut condition = s_cloned.replace(" и ", " && ").replace(" или ", " || ");
+        let binding = s_cloned.replace(" и ", " && ").replace(" или ", " || ");
+        let mut splitted = binding.split(":");
+        let mut condition = splitted.next().unwrap().to_string();
+        let action = splitted.next().unwrap().trim();
 
         for part in operators_pattern.replace_all(&s_cloned, "#").split('#') {
             if let Some(cap) = follows_re.captures(part) {

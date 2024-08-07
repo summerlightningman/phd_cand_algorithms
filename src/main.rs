@@ -5,7 +5,8 @@ use std::time::{Instant};
 use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
 use algorithms::genetic::methods::{Mutate, Select};
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
-
+use crate::algorithms::bee_colony::research_methods;
+use crate::problems::travelling_salesman::algorithms::bee_colony::builder::BeeColonyAlgorithmBuilder;
 
 fn main() {
     let matrix = vec![
@@ -45,29 +46,47 @@ fn main() {
     // println!("{:?}", ac_d_time);
     // println!("{:?}", ac_solutions.unwrap());
 
-    let ga = TSGeneticAlgorithmBuilder::new(
-        matrix.clone(),
-        Mutate::swap_indexes(Some(3)),
-        Select::tournament(5, Some(0.7)),
+    // let ga = TSGeneticAlgorithmBuilder::new(
+    //     matrix.clone(),
+    //     Mutate::swap_indexes(Some(3)),
+    //     Select::tournament(5, Some(0.7)),
+    // )
+    //     .solutions_count(20)
+    //     .iters_count(50)
+    //     .p_mutation(0.99)
+    //     .time_matrix(time_matrix.clone())
+    //     .actors_count(300)
+    //     .rules(vec![
+    //         "8 следует за 0 : -300".to_string(),
+    //         "3 следует за 0 : -300".to_string(),
+    //         "2 следует за 0 : 100".to_string(),
+    //     ])
+    //     .build();
+    //
+    // let ga_time_start = Instant::now();
+    // let ga_solutions = ga.run().unwrap();
+    // let ga_d_time = ga_time_start.elapsed();
+    //
+    // println!("{:?}", ga_d_time);
+    // println!("{:?}", ga_solutions);
+
+    let bc = BeeColonyAlgorithmBuilder::new(
+        matrix,
+        research_methods::swap_indexes(Some(3))
     )
         .solutions_count(20)
-        .p_mutation(0.99)
         .time_matrix(time_matrix)
+        .rules(vec![
+            "8 следует за 0 : -300".to_string(),
+            "3 следует за 0 : -300".to_string(),
+            "2 следует за 0 : 100".to_string(),
+        ])
         .build();
 
-    let ga_time_start = Instant::now();
-    let ga_solutions = ga.run().unwrap();
-    let ga_d_time = ga_time_start.elapsed();
+    let bc_time_start = Instant::now();
+    let bc_solutions = bc.run().unwrap();
+    let bc_d_time = bc_time_start.elapsed();
 
-    println!("{:?}", ga_d_time);
-    println!("{:?}", ga_solutions);
-
-    // let bc = BeeColonyAlgorithmBuilder::new(matrix, research_methods::swap_indexes(Some(3))).solutions_count(20).build();
-    //
-    // let bc_time_start = Instant::now();
-    // let bc_solutions = bc.run().unwrap();
-    // let bc_d_time = bc_time_start.elapsed();
-    // //
-    // println!("{:?}", bc_d_time);
-    // println!("{:?}", bc_solutions);
+    println!("{:?}", bc_d_time);
+    println!("{:?}", bc_solutions);
 }

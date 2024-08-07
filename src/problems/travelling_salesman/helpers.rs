@@ -1,4 +1,5 @@
-use crate::algorithms::types::{FitnessFuncRaw};
+use crate::algorithms::solution::Solution;
+use crate::algorithms::types::{FitnessFuncRaw, FitnessFuncs, Population};
 use super::types::{Matrix, City, TimeMatrix, RuleFn};
 
 pub fn calculate_distance(matrix: &Matrix, cities: &Vec<City>) -> f64 {
@@ -58,4 +59,31 @@ pub fn time_fitness(time_matrix: Option<TimeMatrix>) -> FitnessFuncRaw<City> {
     } else {
         Box::new(move |_| Some(0.))
     }
+}
+
+pub fn make_solutions(population: Population<City>, solutions_count: usize, fitness_funcs: &FitnessFuncs<City>) -> Vec<Solution> {
+    let mut solutions: Vec<Solution> = Vec::new();
+
+    for ind in population.into_iter() {
+        if ind.fitness.is_some() {
+            let distance = ind.fitnesses[0].unwrap();
+            let time = if fitness_funcs.len() > 1 {
+                Some(ind.fitnesses[1].unwrap() as usize)
+            } else {
+                None
+            };
+
+            solutions.push(Solution {
+                path: ind.value,
+                distance,
+                time,
+            });
+        }
+
+        if solutions.len() == solutions_count  {
+            break
+        }
+    }
+
+    solutions
 }
