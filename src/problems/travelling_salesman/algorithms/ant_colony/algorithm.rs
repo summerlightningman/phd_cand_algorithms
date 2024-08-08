@@ -1,15 +1,16 @@
+use lru::LruCache;
 use std::cell::RefCell;
 use rand::thread_rng;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
-use crate::problems::travelling_salesman::helpers::calculate_distance;
-use lru::LruCache;
-use crate::problems::travelling_salesman::types::RuleFn;
+use crate::problems::travelling_salesman::helpers;
+use crate::problems::travelling_salesman::types::{RuleFn, TimeMatrix};
 
 pub struct TSAntColonyAlgorithm {
     pub algo: Parent,
     pub rules: Vec<RuleFn>,
+    pub time_matrix: Option<TimeMatrix>,
     pub penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
 }
 
@@ -21,7 +22,7 @@ impl TSAntColonyAlgorithm {
         let mut rng = thread_rng();
         let mut colony: Vec<Ant> = (0..self.algo.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
 
-        'outer: for _ in 1..=self.algo.iters_count {
+        'outer: for iter_num in 1..=self.algo.iters_count {
             let mut iter_pheromone_matrix: PheromoneMatrix = Parent::generate_pheromone_matrix(cities_count);
 
             for ant in colony.iter_mut() {
@@ -32,7 +33,12 @@ impl TSAntColonyAlgorithm {
 
                     match self.get_ant_distance(&ant) {
                         Some(d) if d > 0. => {
-                            ant.distance = d;
+                            if iter_num == self.algo.iters_count {
+                                ant.distance = d;
+                                if let Some(time_matrix) = &self.time_matrix {
+                                    ant.time = Some(helpers::calculate_time(time_matrix, &ant.path))
+                                }
+                            }
                             iter_pheromone_matrix[ant.previous_city()][city] += self.algo.q / d
                         },
                         None => continue 'outer,
@@ -46,7 +52,48 @@ impl TSAntColonyAlgorithm {
                 ant.reset_path();
             }
 
-            solutions.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+            let distance_min = colony.iter().min_by(|a, b| {
+                a.distance.partial_cmp(&b.distance).unwrap()
+            }).unwrap().distance;
+            let distance_max = colony.iter().max_by(|a, b| {
+                a.distance.partial_cmp(&b.distance).unwrap()
+            }).unwrap().distance;
+            let distance_diff = distance_max - distance_min;
+
+            let time_min = if self.time_matrix.is_none() {
+                1.
+            } else {
+                colony.iter().min_by(|a, b| {
+                    let a_time = a.time.unwrap();
+                    let b_time = b.time.unwrap();
+
+                    a_time.partial_cmp(&b_time).unwrap()
+                }).unwrap().time.unwrap() as f64
+            };
+            let time_max = if self.time_matrix.is_none() {
+                1.
+            } else {
+                colony.iter().max_by(|a, b| {
+                    let a_time = a.time.unwrap();
+                    let b_time = b.time.unwrap();
+
+                    a_time.partial_cmp(&b_time).unwrap()
+                }).unwrap().time.unwrap() as f64
+            };
+            let time_diff = time_max - time_min;
+
+            solutions.sort_by(|a, b| {
+                let a_distance_norm = (a.distance - distance_min) / distance_diff;
+                let b_distance_norm = (b.distance - distance_min) / distance_diff;
+
+                if self.time_matrix.is_some() {
+                    let a_time_norm = (a.time.unwrap() as f64 - time_min) / time_diff;
+                    let b_time_norm = (a.time.unwrap() as f64 - time_min) / time_diff;
+                    (a_distance_norm + a_time_norm).partial_cmp(&(b_distance_norm + b_time_norm)).unwrap()
+                } else {
+                    a_distance_norm.partial_cmp(&b_distance_norm).unwrap()
+                }
+            });
             solutions = solutions[..solutions.len().min(self.algo.solutions_count)].to_owned();
 
             self.algo.vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
@@ -59,9 +106,13 @@ impl TSAntColonyAlgorithm {
         if ant.path.len() <= 1 {
             Some(0.)
         } else {
-            match self.get_penalty(&ant.path) {
-                Some(penalty) => Some(calculate_distance(&self.algo.matrix, &ant.path) + penalty),
-                None => None
+            let mut cache = self.penalty_cache.borrow_mut();
+            if let Some(result) = cache.get(&ant.path.clone()) {
+                *result
+            } else {
+                let result = self.calculate_distance(ant);
+                cache.put(ant.path.clone(), result);
+                result
             }
         }
     }
@@ -71,34 +122,67 @@ impl TSAntColonyAlgorithm {
             return 0.;
         }
 
-        let path = vec![ant.current_city(), *city];
-        let penalty = if let Some(p) = self.get_penalty(&path) {
-            p
-        } else {
-            return 0.
-        };
+        let penalty = self.get_penalty_to_city(&ant.path, city);
+        if let None = penalty {
+            return 0.;
+        }
 
-        let distance = self.algo.matrix[ant.current_city()][*city] + penalty;
+        let distance = self.algo.matrix[ant.current_city()][*city] + penalty.unwrap();
         if distance == 0. {
             return 0.;
         }
 
-        1. / distance
+        let time = match &self.time_matrix {
+            Some(time_matrix) => time_matrix[ant.current_city()][*city],
+            None => 0
+        } as f64;
+
+        1. / (distance + time)
     }
 
-    fn get_penalty(&self, path: &Vec<City>) -> Option<f64> {
-        return Some(0.)
-        // let mut cache = self.penalty_cache.borrow_mut();
-        // if let Some(&cached_result) = cache.get(path) {
-        //     return cached_result;
-        // }
-        //
-        // let result = match apply_rules(path, &self.rules) {
-        //     Some(penalty) => Some(penalty as f64),
-        //     None => None
-        // };
-        //
-        // cache.put(path.clone(), result);
-        // result
+    fn calculate_distance(&self, ant: &Ant) -> Option<f64> {
+        let penalty = if self.rules.is_empty() {
+            0.
+        } else {
+            let mut p = 0;
+            for evaluate in self.rules.iter() {
+                match evaluate(&ant.path) {
+                    Some(pen) => p += pen,
+                    None => return None
+                }
+            }
+            p as f64
+        };
+
+        Some(helpers::calculate_distance(&self.algo.matrix, &ant.path) + penalty)
+    }
+
+    fn get_ant_time(&self, path: &Vec<City>) -> usize {
+        if let Some(time_matrix) = &self.time_matrix {
+            helpers::calculate_time(time_matrix, path)
+        } else {
+            1
+        }
+    }
+
+    fn get_penalty_to_city(&self, path: &Vec<City>, city: &City) -> Option<f64> {
+        let mut cache = self.penalty_cache.borrow_mut();
+        let mut path = path.clone();
+        path.push(*city);
+        if let Some(result) = cache.get(&path) {
+            *result
+        } else {
+            let mut sum = 0;
+            for evaluate in self.rules.iter() {
+                if let Some(penalty) = evaluate(&path) {
+                    sum += penalty;
+                } else {
+                    return None
+                }
+            }
+
+            cache.put(path.clone(), Some(sum as f64));
+            Some(sum as f64)
+        }
     }
 }

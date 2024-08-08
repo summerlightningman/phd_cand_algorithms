@@ -5,7 +5,8 @@ use rand::rngs::ThreadRng;
 #[derive(Debug, Clone)]
 pub struct Ant {
     pub path: Vec<City>,
-    pub distance: f64
+    pub distance: f64,
+    pub time: Option<usize>,
 }
 
 impl Ant {
@@ -14,7 +15,7 @@ impl Ant {
         let mut path: Vec<City> = Vec::with_capacity(cities_count);
         path.push(first_city);
 
-        Self { path, distance: 0. }
+        Self { path, distance: 0., time: None }
     }
 
     pub fn current_city(&self) -> City {

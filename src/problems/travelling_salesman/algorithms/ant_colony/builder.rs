@@ -3,13 +3,14 @@ use std::num::NonZeroUsize;
 use lru::LruCache;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
-use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn};
+use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, TimeMatrix};
 use super::algorithm::TSAntColonyAlgorithm;
 
 pub struct TSAntColonyAlgorithmBuilder {
     matrix: Matrix,
     rules: Vec<RuleFn>,
     penalty_cache: RefCell<LruCache<Vec<City>, Option<f64>>>,
+    time_matrix: Option<TimeMatrix>,
     actors_count: usize,
     iters_count: usize,
     solutions_count: usize,
@@ -32,6 +33,7 @@ impl TSAntColonyAlgorithmBuilder {
             actors_count: ACTORS_COUNT,
             iters_count: ITERS_COUNT,
             solutions_count: SOLUTIONS_COUNT,
+            time_matrix: None,
             p: 1.,
             q: 1.,
             alpha: 1.,
@@ -74,10 +76,20 @@ impl TSAntColonyAlgorithmBuilder {
         self
     }
 
+    pub fn time_matrix(mut self, time_matrix: TimeMatrix) -> Self {
+        if time_matrix.len() != self.matrix.len() {
+            panic!("Time matrix size is not equal distance matrix")
+        }
+
+        self.time_matrix = Some(time_matrix);
+        self
+    }
+
     fn build(self) -> TSAntColonyAlgorithm {
         TSAntColonyAlgorithm {
             rules: self.rules,
             penalty_cache: self.penalty_cache,
+            time_matrix: self.time_matrix,
             algo: AntColonyAlgorithm {
                 matrix: self.matrix,
                 solutions_count: self.solutions_count,
