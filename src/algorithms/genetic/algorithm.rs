@@ -2,11 +2,10 @@ use crate::algorithms::{
     individual::Individual,
     genetic::types::{CrossoverFunc, GenerateFuncRaw, MutateFuncRaw, Population, SelectFuncRaw},
     types::{FitnessFuncs, Purpose},
-    helpers::calculate_fitnesses
+    helpers
 };
 use levenshtein::levenshtein;
 use rand::{Rng, thread_rng};
-use super::helpers::compare_by_fitness;
 
 
 pub struct GeneticAlgorithm<T> {
@@ -32,7 +31,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
             population.push(Individual::with_fitnesses(value, &self.fitness_funcs));
         }
 
-        calculate_fitnesses(&mut population, &self.fitness_funcs);
+        helpers::calculate_fitnesses(&mut population, &self.fitness_funcs);
 
         for _ in 0..self.iters_count {
             // SELECTION
@@ -63,10 +62,10 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
                 new_population.push(Individual::with_fitnesses(child_2_value, &self.fitness_funcs));
             }
 
-            calculate_fitnesses(&mut population, &self.fitness_funcs);
+            helpers::calculate_fitnesses(&mut population, &self.fitness_funcs);
 
             population.extend(new_population);
-            population.sort_by(compare_by_fitness(&self.purpose));
+            population.sort_by(helpers::compare_by_fitness(&self.purpose));
             population.truncate(self.actors_count );
         }
 
@@ -83,7 +82,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
 
             return fitness_a == fitness_b
         });
-        population.sort_by(compare_by_fitness(&self.purpose));
+        population.sort_by(helpers::compare_by_fitness(&self.purpose));
         population.truncate(self.solutions_count );
         population.shrink_to_fit();
         Ok(population)

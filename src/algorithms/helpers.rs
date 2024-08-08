@@ -1,7 +1,10 @@
 use rand::Rng;
+use std::cmp::Ordering;
 use rand::distributions::{WeightedIndex, Distribution};
 use rand::rngs::ThreadRng;
 use crate::algorithms::types::{FitnessFuncs, Population};
+use crate::algorithms::individual::Individual;
+use crate::algorithms::types::Purpose;
 
 pub fn generate_two_points(offset_: Option<usize>, seq_length: usize, rng: &mut ThreadRng) -> (usize, usize) {
     if seq_length <= 1 {
@@ -108,5 +111,29 @@ pub fn calculate_fitnesses<T>(population: &mut Population<T>, fitness_funcs: &Fi
         }
 
         ind.fitness = Some(fitness as f32);
+    }
+}
+
+
+pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Individual<T>, &Individual<T>) -> Ordering + '_ {
+    let stub = match purpose {
+        Purpose::Min => Ordering::Greater,
+        Purpose::Max => Ordering::Less,
+    };
+
+    return move |a: &Individual<T>, b: &Individual<T>| -> Ordering {
+        let a_fitness = match a.fitness {
+            Some(fit) => fit,
+            None => return stub,
+        };
+        let b_fitness = match b.fitness {
+            Some(fit) => fit,
+            None => return stub
+        };
+
+        return match purpose {
+            Purpose::Min => a_fitness.total_cmp(&b_fitness),
+            Purpose::Max => b_fitness.total_cmp(&a_fitness)
+        }
     }
 }

@@ -2,11 +2,9 @@ mod algorithms;
 mod problems;
 
 use std::time::{Instant};
-use problems::travelling_salesman::algorithms::genetic::builder::TSGeneticAlgorithmBuilder;
-use algorithms::genetic::methods::{Mutate, Select};
+
 use crate::algorithms::algorithm::OptimizationAlgorithmBuilder;
-use crate::algorithms::bee_colony::research_methods;
-use crate::problems::travelling_salesman::algorithms::bee_colony::builder::BeeColonyAlgorithmBuilder;
+use crate::problems::travelling_salesman::algorithms::ant_colony::builder::TSAntColonyAlgorithmBuilder;
 
 fn main() {
     let matrix = vec![
@@ -35,16 +33,21 @@ fn main() {
         vec![39, 25, 58, 31, 70, 40, 64, 21, 57, 0],
     ];
 
-    // let ac = AntColonyAlgorithmBuilder::new(matrix.clone())
-    //     .iters_count(1000)
-    //     .build();
-    //
-    // let ac_time_start = Instant::now();
-    // let ac_solutions = ac.run();
-    // let ac_d_time = ac_time_start.elapsed();
-    //
-    // println!("{:?}", ac_d_time);
-    // println!("{:?}", ac_solutions.unwrap());
+    let ac = TSAntColonyAlgorithmBuilder::new(matrix.clone())
+        .time_matrix(time_matrix)
+        .rules(vec![
+            "8 следует за 0 : -300".to_string(),
+            "3 следует за 0 : -300".to_string(),
+            "2 следует за 0 : 100".to_string(),
+        ])
+        .build();
+
+    let ac_time_start = Instant::now();
+    let ac_solutions = ac.run();
+    let ac_d_time = ac_time_start.elapsed();
+
+    println!("{:?}", ac_d_time);
+    println!("{:?}", ac_solutions.unwrap());
 
     // let ga = TSGeneticAlgorithmBuilder::new(
     //     matrix.clone(),
@@ -70,23 +73,23 @@ fn main() {
     // println!("{:?}", ga_d_time);
     // println!("{:?}", ga_solutions);
 
-    let bc = BeeColonyAlgorithmBuilder::new(
-        matrix,
-        research_methods::swap_indexes(Some(3))
-    )
-        .solutions_count(20)
-        .time_matrix(time_matrix)
-        .rules(vec![
-            "8 следует за 0 : -300".to_string(),
-            "3 следует за 0 : -300".to_string(),
-            "2 следует за 0 : 100".to_string(),
-        ])
-        .build();
+    // let bc = BeeColonyAlgorithmBuilder::new(
+    //     matrix,
+    //     research_methods::swap_indexes(Some(3))
+    // )
+    //     .solutions_count(20)
+    //     .time_matrix(time_matrix)
+    //     .rules(vec![
+    //         "8 следует за 0 : -300".to_string(),
+    //         "3 следует за 0 : -300".to_string(),
+    //         "2 следует за 0 : 100".to_string(),
+    //     ])
+    //     .build();
 
-    let bc_time_start = Instant::now();
-    let bc_solutions = bc.run().unwrap();
-    let bc_d_time = bc_time_start.elapsed();
-
-    println!("{:?}", bc_d_time);
-    println!("{:?}", bc_solutions);
+    // let bc_time_start = Instant::now();
+    // let bc_solutions = bc.run().unwrap();
+    // let bc_d_time = bc_time_start.elapsed();
+    //
+    // println!("{:?}", bc_d_time);
+    // println!("{:?}", bc_solutions);
 }

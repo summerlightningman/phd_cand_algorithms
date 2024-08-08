@@ -3,7 +3,8 @@ use std::num::NonZeroUsize;
 use lru::LruCache;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm;
 use crate::algorithms::constants::{ACTORS_COUNT, ITERS_COUNT, SOLUTIONS_COUNT};
-use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, TimeMatrix};
+use crate::problems::travelling_salesman::rules::parse_rule;
+use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, RuleStr, TimeMatrix};
 use super::algorithm::TSAntColonyAlgorithm;
 
 pub struct TSAntColonyAlgorithmBuilder {
@@ -21,7 +22,7 @@ pub struct TSAntColonyAlgorithmBuilder {
 }
 
 impl TSAntColonyAlgorithmBuilder {
-    fn new(matrix: Matrix) -> Self {
+    pub fn new(matrix: Matrix) -> Self {
         if matrix.len() != (matrix.iter().map(|row| row.len()).sum::<usize>() / matrix.len()) {
             panic!("Matrix is not squared")
         }
@@ -41,37 +42,37 @@ impl TSAntColonyAlgorithmBuilder {
         }
     }
 
-    fn actors_count(mut self, actors_count: usize) -> Self {
+    pub fn actors_count(mut self, actors_count: usize) -> Self {
         self.actors_count = actors_count;
         self
     }
 
-    fn iters_count(mut self, iters_count: usize) -> Self {
+    pub fn iters_count(mut self, iters_count: usize) -> Self {
         self.iters_count = iters_count;
         self
     }
 
-    fn solutions_count(mut self, solutions_count: usize) -> Self {
+    pub fn solutions_count(mut self, solutions_count: usize) -> Self {
         self.solutions_count = solutions_count;
         self
     }
 
-    fn p(mut self, p: f64) -> Self {
+    pub fn p(mut self, p: f64) -> Self {
         self.p = p;
         self
     }
 
-    fn q(mut self, q: f64) -> Self {
+    pub fn q(mut self, q: f64) -> Self {
         self.q = q;
         self
     }
 
-    fn alpha(mut self, alpha: f64) -> Self {
+    pub fn alpha(mut self, alpha: f64) -> Self {
         self.alpha = alpha;
         self
     }
 
-    fn beta(mut self, beta: f64) -> Self {
+    pub fn beta(mut self, beta: f64) -> Self {
         self.beta = beta;
         self
     }
@@ -85,7 +86,15 @@ impl TSAntColonyAlgorithmBuilder {
         self
     }
 
-    fn build(self) -> TSAntColonyAlgorithm {
+    pub fn rules(mut self, rules: Vec<RuleStr>) -> Self {
+        self.rules = rules.into_iter().map(|rule_str| {
+            parse_rule(rule_str, self.matrix.clone(), self.time_matrix.clone())
+        }).collect();
+
+        self
+    }
+
+    pub fn build(self) -> TSAntColonyAlgorithm {
         TSAntColonyAlgorithm {
             rules: self.rules,
             penalty_cache: self.penalty_cache,

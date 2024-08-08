@@ -4,7 +4,6 @@ use rand::{Rng, seq::IteratorRandom};
 use rand::prelude::ThreadRng;
 use crate::algorithms::genetic::types::Population;
 use crate::algorithms::types::Purpose;
-use super::helpers::compare_by_fitness;
 
 pub struct Crossover;
 pub struct Select;
@@ -141,8 +140,8 @@ impl Select {
             for _ in 0..count {
                 let candidates: Vec<Individual<T>> = population.iter().choose_multiple(rng, size).into_iter().cloned().collect();
                 let winner = match purpose {
-                    Purpose::Min => candidates.into_iter().min_by(compare_by_fitness(purpose)),
-                    Purpose::Max => candidates.into_iter().max_by(compare_by_fitness(purpose)),
+                    Purpose::Min => candidates.into_iter().min_by(helpers::compare_by_fitness(purpose)),
+                    Purpose::Max => candidates.into_iter().max_by(helpers::compare_by_fitness(purpose)),
                 };
 
                 if let Some(winner) = winner {
@@ -157,7 +156,7 @@ impl Select {
     pub fn best_n<T: Clone>(rate: Option<f32>)-> impl Fn(Population<T>, &Purpose, &mut ThreadRng) -> Population<T> {
         move |mut population: Population<T>, purpose: &Purpose, _: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
-            population.sort_by(compare_by_fitness(purpose));
+            population.sort_by(helpers::compare_by_fitness(purpose));
             population.truncate(count);
             population
         }

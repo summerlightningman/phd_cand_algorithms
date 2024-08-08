@@ -3,8 +3,7 @@ use rand::thread_rng;
 use random_choice::random_choice;
 use crate::algorithms::types::{FitnessFuncs, Population, Purpose};
 use super::types::{ResearchFuncRaw, GenerateFuncRaw};
-use super::helpers;
-use crate::algorithms::helpers::calculate_fitnesses;
+use crate::algorithms::helpers;
 use crate::algorithms::individual::Individual as Bee;
 
 pub struct BeeColonyAlgorithm<T> {
@@ -25,11 +24,11 @@ impl<T: Clone + Debug> BeeColonyAlgorithm<T> {
         let mut workers: Population<T> = (0..workers_count).map(|_| self.generate_bee()).collect();
         let mut rng = thread_rng();
 
-        calculate_fitnesses(&mut workers, &self.fitness_funcs);
+        helpers::calculate_fitnesses(&mut workers, &self.fitness_funcs);
 
         for _ in 0..self.iters_count {
             let mut onlookers: Population<T> = (0..onlookers_count).map(|_| { self.generate_bee() }).collect();
-            calculate_fitnesses(&mut onlookers, &self.fitness_funcs);
+            helpers::calculate_fitnesses(&mut onlookers, &self.fitness_funcs);
             onlookers.shrink_to_fit();
 
             let probabilities = self.get_source_probabilities(&onlookers);
@@ -59,7 +58,7 @@ impl<T: Clone + Debug> BeeColonyAlgorithm<T> {
             }
         }
 
-        calculate_fitnesses(&mut workers, &self.fitness_funcs);
+        helpers::calculate_fitnesses(&mut workers, &self.fitness_funcs);
 
         workers.dedup_by(|a, b| {
             let fitness_a = match a.fitness {
