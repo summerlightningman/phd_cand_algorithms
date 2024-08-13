@@ -1,5 +1,6 @@
 use lru::LruCache;
 use std::cell::RefCell;
+use std::cmp::Ordering;
 use rand::thread_rng;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
@@ -55,6 +56,7 @@ impl TSAntColonyAlgorithm {
                 ant.reset_path();
             }
 
+            solutions = solutions.into_iter().filter(|el| el.time.is_some()).collect();
             let distance_min = colony.iter().min_by(|a, b| {
                 a.distance.partial_cmp(&b.distance).unwrap()
             }).unwrap().distance;
@@ -66,7 +68,7 @@ impl TSAntColonyAlgorithm {
             let time_min = if self.time_matrix.is_none() {
                 1.
             } else {
-                colony.iter().min_by(|a, b| {
+                solutions.iter().min_by(|a, b| {
                     let a_time = a.time.unwrap();
                     let b_time = b.time.unwrap();
 
@@ -76,7 +78,7 @@ impl TSAntColonyAlgorithm {
             let time_max = if self.time_matrix.is_none() {
                 1.
             } else {
-                colony.iter().max_by(|a, b| {
+                solutions.iter().max_by(|a, b| {
                     let a_time = a.time.unwrap();
                     let b_time = b.time.unwrap();
 
@@ -85,6 +87,9 @@ impl TSAntColonyAlgorithm {
             };
             let time_diff = time_max - time_min;
 
+            solutions.dedup_by(|a, b| {
+                a.distance == b.distance
+            });
             solutions.sort_by(|a, b| {
                 let a_distance_norm = (a.distance - distance_min) / distance_diff;
                 let b_distance_norm = (b.distance - distance_min) / distance_diff;
