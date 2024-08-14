@@ -1,12 +1,11 @@
 use lru::LruCache;
 use std::cell::RefCell;
-use std::cmp::Ordering;
 use rand::thread_rng;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
-use crate::algorithms::solution::Solution;
 use crate::problems::travelling_salesman::helpers;
+use crate::problems::travelling_salesman::solution::Solution;
 use crate::problems::travelling_salesman::types::{RuleFn, TimeMatrix};
 
 pub struct TSAntColonyAlgorithm {

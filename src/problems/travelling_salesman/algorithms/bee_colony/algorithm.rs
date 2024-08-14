@@ -1,7 +1,7 @@
-use crate::algorithms::solution::Solution;
 use crate::problems::travelling_salesman::types::{City};
 use crate::algorithms::bee_colony::algorithm::BeeColonyAlgorithm;
 use crate::problems::travelling_salesman::helpers::make_solutions;
+use crate::problems::travelling_salesman::solution::Solution;
 
 pub struct TSBeeColonyAlgorithm {
     pub algo: BeeColonyAlgorithm<City>,
