@@ -1,5 +1,5 @@
-use crate::algorithms::solution::Solution;
 use crate::algorithms::types::{FitnessFuncRaw, FitnessFuncs, Population};
+use crate::problems::travelling_salesman::solution::Solution;
 use super::types::{Matrix, City, TimeMatrix, RuleFn};
 
 pub fn calculate_distance(matrix: &Matrix, cities: &Vec<City>) -> f64 {
@@ -51,14 +51,10 @@ pub fn calculate_distance_with_rules(matrix: Matrix, rules: Vec<RuleFn>) -> Fitn
     })
 }
 
-pub fn time_fitness(time_matrix: Option<TimeMatrix>) -> FitnessFuncRaw<City> {
-    if let Some(t_matrix) = time_matrix {
-        Box::new(move |cities: &Vec<City>| {
-            Some(calculate_time(&t_matrix, cities) as f64)
-        })
-    } else {
-        Box::new(move |_| Some(0.))
-    }
+pub fn time_fitness(time_matrix: TimeMatrix) -> FitnessFuncRaw<City> {
+    Box::new(move |cities: &Vec<City>| {
+        Some(calculate_time(&time_matrix, cities) as f64)
+    })
 }
 
 pub fn make_solutions(population: Population<City>, solutions_count: usize, fitness_funcs: &FitnessFuncs<City>) -> Vec<Solution> {

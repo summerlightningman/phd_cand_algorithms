@@ -8,7 +8,6 @@ name = "phd_cand"
 crate-type = ["lib"]
 
 [dependencies]
-levenshtein = "1.0.5"
 lru = "0.12.4"
 rand = "0.8.5"
 random_choice = "0.3.2"

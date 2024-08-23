@@ -1,4 +1,4 @@
-use std::ops::{Index, RangeInclusive};
+use std::ops::{RangeInclusive};
 use eval::eval;
 use regex::Regex;
 use crate::problems::travelling_salesman::types::{City, Matrix, RuleFn, RuleStr, TimeMatrix};

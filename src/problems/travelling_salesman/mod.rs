@@ -2,4 +2,4 @@ pub mod types;
 pub mod algorithms;
 pub mod helpers;
 pub mod rules;
-mod solution;
+pub mod solution;

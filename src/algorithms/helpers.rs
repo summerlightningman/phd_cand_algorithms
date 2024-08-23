@@ -2,6 +2,7 @@ use rand::Rng;
 use std::cmp::Ordering;
 use rand::distributions::{WeightedIndex, Distribution};
 use rand::rngs::ThreadRng;
+use rand::seq::SliceRandom;
 use crate::algorithms::types::{FitnessFuncs, Population};
 use crate::algorithms::individual::Individual;
 use crate::algorithms::types::Purpose;

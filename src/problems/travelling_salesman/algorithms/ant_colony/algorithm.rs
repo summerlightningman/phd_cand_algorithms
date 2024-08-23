@@ -55,7 +55,6 @@ impl TSAntColonyAlgorithm {
                 ant.reset_path();
             }
 
-            solutions = solutions.into_iter().filter(|el| el.time.is_some()).collect();
             let distance_min = colony.iter().min_by(|a, b| {
                 a.distance.partial_cmp(&b.distance).unwrap()
             }).unwrap().distance;

@@ -2,9 +2,10 @@ use std::fmt::Debug;
 use rand::thread_rng;
 use random_choice::random_choice;
 use crate::algorithms::types::{FitnessFuncs, Population, Purpose};
-use super::types::{ResearchFuncRaw, GenerateFuncRaw};
+use super::types::GenerateFuncRaw;
 use crate::algorithms::helpers;
 use crate::algorithms::individual::Individual as Bee;
+use crate::algorithms::bee_colony::types::ResearchFunction;
 
 pub struct BeeColonyAlgorithm<T> {
     pub actors_count: usize,
@@ -13,7 +14,7 @@ pub struct BeeColonyAlgorithm<T> {
     pub workers_part: f32,
     pub purpose: Purpose,
     pub fitness_funcs: FitnessFuncs<T>,
-    pub research_func: ResearchFuncRaw<T>,
+    pub research_func: ResearchFunction<T>,
     pub generate_func: GenerateFuncRaw<T>,
 }
 
@@ -35,7 +36,7 @@ impl<T: Clone + Debug> BeeColonyAlgorithm<T> {
             for worker in workers.iter_mut() {
                 let selected_source: &Bee<T> = self.select_onlooker_by_probabilities(&onlookers, &probabilities);
 
-                let researched_source = (self.research_func)(&worker.value, &mut rng);
+                let researched_source = (self.research_func.0)(&worker.value, &mut rng);
                 let researched_fitness = worker.fitness;
 
                 if let Purpose::Min = self.purpose {
