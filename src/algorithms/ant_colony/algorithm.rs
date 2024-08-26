@@ -82,7 +82,7 @@ impl AntColonyAlgorithm {
         self.matrix.len() as usize
     }
 
-    fn cities_list(&self) -> Vec<City> {
+    pub fn cities_list(&self) -> Vec<City> {
         (0..self.cities_count() ).collect()
     }
 

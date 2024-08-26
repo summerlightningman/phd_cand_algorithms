@@ -35,6 +35,11 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
 
         for _ in 0..self.iters_count {
             // SELECTION
+            if population.iter().all(|individual: &Individual<T>| {
+                individual.fitness.unwrap_or(0.) == 0.
+            }) {
+                break
+            };
             population = self.select_func.0(population, &self.purpose, &mut rng);
 
             // CROSSOVER
@@ -71,7 +76,7 @@ impl<T: std::fmt::Debug + Clone + Send + Sync> GeneticAlgorithm<T> {
             population.truncate(self.actors_count );
         }
 
-        population.dedup_by(|a, b| a.fitness == a.fitness);
+        population.dedup_by(|a, b| a.fitness == b.fitness);
         population.sort_unstable_by(helpers::compare_by_fitness(&self.purpose));
         population.truncate(self.solutions_count );
         Ok(population)

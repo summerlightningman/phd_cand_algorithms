@@ -1,8 +1,8 @@
 use rand::Rng;
 use std::cmp::Ordering;
+use std::fmt::Debug;
 use rand::distributions::{WeightedIndex, Distribution};
 use rand::rngs::ThreadRng;
-use rand::seq::SliceRandom;
 use crate::algorithms::types::{FitnessFuncs, Population};
 use crate::algorithms::individual::Individual;
 use crate::algorithms::types::Purpose;
@@ -58,16 +58,21 @@ pub fn process_two_points_or_generate(seq_length: usize, points: (Option<usize>,
 
 pub fn get_count_by_rate<T>(population_len: usize, rate: f32) -> usize {
     let count = (population_len as f32) * rate;
-    return count.round() as usize
+    return count.round() as usize;
 }
 
-pub fn weighted_random_sampling<T: Clone>(items: &Vec<T>, weights: Vec<f32>, k: usize, rng: &mut ThreadRng) -> Vec<T> {
-    let dist = WeightedIndex::new(weights).unwrap();
-
-    (0..k).map(|_| {
-        let index = dist.sample(rng);
-        items[index].clone()
-    }).collect()
+pub fn weighted_random_sampling<T: Clone + Debug>(items: &Vec<T>, weights: Vec<f32>, k: usize, rng: &mut ThreadRng) -> Result<Vec<T>, &'static str> {
+    let dist = WeightedIndex::new(weights);
+    if let Ok(dist) = dist {
+        Ok(
+            (0..k).map(|_| {
+                let index = dist.sample(rng);
+                items[index].clone()
+            }).collect()
+        )
+    } else {
+        Err("List is empty")
+    }
 }
 
 fn fitnesses_min_diff<T>(population: &Population<T>, fitness_funcs: &FitnessFuncs<T>) -> (Vec<f64>, Vec<f64>) {
@@ -107,7 +112,7 @@ pub fn calculate_fitnesses<T>(population: &mut Population<T>, fitness_funcs: &Fi
                 fitness += (fitness_raw - fitnesses_min[idx]) / fitnesses_diff[idx]
             } else {
                 ind.fitness = None;
-                continue 'outer
+                continue 'outer;
             }
         }
 
@@ -135,6 +140,6 @@ pub fn compare_by_fitness<T>(purpose: &Purpose) -> impl Fn(&Individual<T>, &Indi
         return match purpose {
             Purpose::Min => a_fitness.total_cmp(&b_fitness),
             Purpose::Max => b_fitness.total_cmp(&a_fitness)
-        }
-    }
+        };
+    };
 }

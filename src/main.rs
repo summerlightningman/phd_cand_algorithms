@@ -36,8 +36,28 @@ fn main() {
         vec![39, 25, 58, 31, 70, 40, 64, 21, 57, 0],
     ];
 
-    // let ac = TSAntColonyAlgorithmBuilder::new(matrix.clone())
-    //     .time_matrix(time_matrix)
+    let ac = TSAntColonyAlgorithmBuilder::new(matrix.clone())
+        .time_matrix(time_matrix)
+        // .rules(vec![
+        //     "8 следует за 0 : -300".to_string(),
+        //     "3 следует за 0 : -300".to_string(),
+        //     "2 следует за 0 : 100".to_string(),
+        // ])
+        .build();
+    //
+    let ac_time_start = Instant::now();
+    let ac_solutions = ac.run();
+    let ac_d_time = ac_time_start.elapsed();
+    //
+    println!("{:?}", ac_d_time);
+    println!("{:?}", ac_solutions.unwrap());
+
+    // let ga = TSGeneticAlgorithmBuilder::new(
+    //     matrix.clone(),
+    //     Mutate::swap_indexes(Some(3)),
+    //     Select::tournament(5, Some(0.7)),
+    // )
+    //     .time_matrix(time_matrix.clone())
     //     .rules(vec![
     //         "8 следует за 0 : -300".to_string(),
     //         "3 следует за 0 : -300".to_string(),
@@ -45,32 +65,12 @@ fn main() {
     //     ])
     //     .build();
     //
-    // let ac_time_start = Instant::now();
-    // let ac_solutions = ac.run();
-    // let ac_d_time = ac_time_start.elapsed();
+    // let ga_time_start = Instant::now();
+    // let ga_solutions = ga.run().unwrap();
+    // let ga_d_time = ga_time_start.elapsed();
     //
-    // println!("{:?}", ac_d_time);
-    // println!("{:?}", ac_solutions.unwrap());
-
-    let ga = TSGeneticAlgorithmBuilder::new(
-        matrix.clone(),
-        Mutate::swap_indexes(Some(3)),
-        Select::tournament(5, Some(0.7)),
-    )
-        .time_matrix(time_matrix.clone())
-        .rules(vec![
-            "8 следует за 0 : -300".to_string(),
-            "3 следует за 0 : -300".to_string(),
-            "2 следует за 0 : 100".to_string(),
-        ])
-        .build();
-
-    let ga_time_start = Instant::now();
-    let ga_solutions = ga.run().unwrap();
-    let ga_d_time = ga_time_start.elapsed();
-
-    println!("{:?}", ga_d_time);
-    println!("{:?}", ga_solutions);
+    // println!("{:?}", ga_d_time);
+    // println!("{:?}", ga_solutions);
 
     // let bc = TSBeeColonyAlgorithmBuilder::new(
     //     matrix,

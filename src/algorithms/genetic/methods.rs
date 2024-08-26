@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::algorithms::individual::Individual;
 use crate::algorithms::helpers;
 use rand::{Rng, seq::IteratorRandom};
@@ -110,22 +111,27 @@ impl Mutate {
 
 const RATE_DEFAULT: f32 = 0.7;
 impl Select {
-    pub fn roulette<T: Clone>(rate: Option<f32>) -> SelectFunc<T> {
+    pub fn roulette<T: Clone + Debug>(rate: Option<f32>) -> SelectFunc<T> {
         SelectFunc(Box::new(move |population: Population<T>, purpose: &Purpose, rng: &mut ThreadRng| {
             let count = helpers::get_count_by_rate::<T>(population.len(), rate.unwrap_or(RATE_DEFAULT));
             let fitness_sum: f32 = population.iter().filter_map(|ind| ind.fitness).sum();
             let probabilities: Vec<f32> = population.iter().map(|ind| {
                 if let Some(fitness) = ind.fitness {
                     return if let Purpose::Min = purpose {
-                        (1. - fitness / fitness_sum) as f32
+                        1. - fitness / fitness_sum
                     } else {
-                        (fitness / fitness_sum) as f32
+                        fitness / fitness_sum
                     }
                 } else {
                     0.
                 }
             }).collect();
-            helpers::weighted_random_sampling(&population, probabilities, count, rng)
+
+
+            match helpers::weighted_random_sampling(&population, probabilities, count, rng) {
+                Ok(population) => population,
+                _ => Vec::new()
+            }
         }))
     }
 

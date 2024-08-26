@@ -28,16 +28,14 @@ impl TSAntColonyAlgorithm {
 
             for ant in colony.iter_mut() {
                 for _ in 0..cities_count - 1 {
-                    let probabilities = self.algo.get_probabilities_list(&ant, &mut pheromone_matrix)?;
+                    let probabilities = self.get_probabilities_list(&ant, &mut pheromone_matrix)?;
                     let city = self.algo.select_city(probabilities)?;
                     ant.go_to(city);
 
                     match self.get_ant_distance(&ant) {
                         Some(d) if d > 0. => {
                             ant.distance = d;
-                            if let Some(time_matrix) = &self.time_matrix {
-                                ant.time = Some(helpers::calculate_time(time_matrix, &ant.path))
-                            }
+                            ant.time = self.get_ant_time(&ant.path);
                             iter_pheromone_matrix[ant.previous_city()][city] += self.algo.q / d
                         },
                         None => continue 'outer,
@@ -108,18 +106,58 @@ impl TSAntColonyAlgorithm {
         Ok(solutions)
     }
 
+    pub fn get_probabilities_list(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Result<Vec<f64>, &str> {
+        let cities_preferences = self.get_ant_preferences(ant, pheromone_matrix);
+        let cities_preferences_sum: f64 = cities_preferences.iter().sum();
+
+        if cities_preferences_sum == 0. {
+            Err("Error calculating")
+        } else {
+            Ok(
+                self.algo.cities_list()
+                    .iter()
+                    .map(|city: &City| {
+                        let city_preference = cities_preferences[*city];
+                        city_preference / cities_preferences_sum
+                    })
+                    .collect()
+            )
+        }
+    }
+
+    fn get_ant_preferences(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Vec<f64> {
+        let get_ant_preference_to = |city: City| -> f64 {
+            if ant.path.contains(&city) {
+                return 0.;
+            }
+
+            let visibility = self.get_ant_visibility(&ant, &city);
+            let pheromone = pheromone_matrix[ant.current_city()][city];
+
+            visibility.powf(self.algo.alpha) * pheromone.powf(self.algo.beta)
+        };
+
+        self.algo.cities_list()
+            .into_iter()
+            .map(get_ant_preference_to)
+            .collect()
+    }
+
     fn get_ant_distance(&self, ant: &Ant) -> Option<f64> {
         if ant.path.len() <= 1 {
             Some(0.)
         } else {
             let mut cache = self.penalty_cache.borrow_mut();
-            if let Some(result) = cache.get(&ant.path.clone()) {
-                *result
-            } else {
-                let result = self.calculate_distance(ant);
-                cache.put(ant.path.clone(), result);
-                result
+
+            if let Some(result_raw) = cache.get(&ant.path.clone()) {
+                if result_raw.is_none() || result_raw.unwrap_or(0.) > 0. {
+                    return *result_raw
+                }
             }
+
+            let result = self.calculate_distance(ant);
+            cache.put(ant.path.clone(), result);
+            return result
         }
     }
 
@@ -163,11 +201,11 @@ impl TSAntColonyAlgorithm {
         Some(helpers::calculate_distance(&self.algo.matrix, &ant.path) + penalty)
     }
 
-    fn get_ant_time(&self, path: &Vec<City>) -> usize {
+    fn get_ant_time(&self, path: &Vec<City>) -> Option<usize> {
         if let Some(time_matrix) = &self.time_matrix {
-            helpers::calculate_time(time_matrix, path)
+            Some(helpers::calculate_time(time_matrix, path))
         } else {
-            1
+            None
         }
     }
 
