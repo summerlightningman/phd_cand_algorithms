@@ -1,6 +1,6 @@
 use super::types::City;
-use rand::{Rng};
 use rand::rngs::ThreadRng;
+use rand::Rng;
 
 #[derive(Debug, Clone)]
 pub struct Ant {
@@ -15,7 +15,11 @@ impl Ant {
         let mut path: Vec<City> = Vec::with_capacity(cities_count);
         path.push(first_city);
 
-        Self { path, distance: 0., time: None }
+        Self {
+            path,
+            distance: 0.,
+            time: None,
+        }
     }
 
     pub fn current_city(&self) -> City {

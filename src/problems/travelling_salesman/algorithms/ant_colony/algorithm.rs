@@ -1,12 +1,12 @@
-use lru::LruCache;
-use std::cell::RefCell;
-use rand::thread_rng;
 use crate::algorithms::ant_colony::algorithm::AntColonyAlgorithm as Parent;
 use crate::algorithms::ant_colony::ant::Ant;
 use crate::algorithms::ant_colony::types::{City, PheromoneMatrix};
 use crate::problems::travelling_salesman::helpers;
 use crate::problems::travelling_salesman::solution::Solution;
 use crate::problems::travelling_salesman::types::{RuleFn, TimeMatrix};
+use lru::LruCache;
+use rand::thread_rng;
+use std::cell::RefCell;
 
 pub struct TSAntColonyAlgorithm {
     pub algo: Parent,
@@ -21,10 +21,13 @@ impl TSAntColonyAlgorithm {
         let mut pheromone_matrix: PheromoneMatrix = Parent::generate_pheromone_matrix(cities_count);
         let mut solutions: Vec<Solution> = Vec::new();
         let mut rng = thread_rng();
-        let mut colony: Vec<Ant> = (0..self.algo.actors_count).map(|_| Ant::new(cities_count, &mut rng)).collect();
+        let mut colony: Vec<Ant> = (0..self.algo.actors_count)
+            .map(|_| Ant::new(cities_count, &mut rng))
+            .collect();
 
         'outer: for _ in 1..=self.algo.iters_count {
-            let mut iter_pheromone_matrix: PheromoneMatrix = Parent::generate_pheromone_matrix(cities_count);
+            let mut iter_pheromone_matrix: PheromoneMatrix =
+                Parent::generate_pheromone_matrix(cities_count);
 
             for ant in colony.iter_mut() {
                 for _ in 0..cities_count - 1 {
@@ -37,9 +40,9 @@ impl TSAntColonyAlgorithm {
                             ant.distance = d;
                             ant.time = self.get_ant_time(&ant.path);
                             iter_pheromone_matrix[ant.previous_city()][city] += self.algo.q / d
-                        },
+                        }
                         None => continue 'outer,
-                        _ => continue
+                        _ => continue,
                     }
                 }
 
@@ -47,81 +50,102 @@ impl TSAntColonyAlgorithm {
                     solutions.push(Solution {
                         path: ant.path.clone(),
                         distance: ant.distance,
-                        time: ant.time
+                        time: ant.time,
+                        fitness: 1.,
                     });
                 }
                 ant.reset_path();
             }
 
-            let distance_min = colony.iter().min_by(|a, b| {
-                a.distance.partial_cmp(&b.distance).unwrap()
-            }).unwrap().distance;
-            let distance_max = colony.iter().max_by(|a, b| {
-                a.distance.partial_cmp(&b.distance).unwrap()
-            }).unwrap().distance;
+            let distance_min = colony
+                .iter()
+                .min_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+                .unwrap()
+                .distance;
+            let distance_max = colony
+                .iter()
+                .max_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+                .unwrap()
+                .distance;
             let distance_diff = distance_max - distance_min;
 
             let time_min = if self.time_matrix.is_none() {
                 1.
             } else {
-                solutions.iter().min_by(|a, b| {
-                    let a_time = a.time.unwrap();
-                    let b_time = b.time.unwrap();
+                solutions
+                    .iter()
+                    .min_by(|a, b| {
+                        let a_time = a.time.unwrap();
+                        let b_time = b.time.unwrap();
 
-                    a_time.partial_cmp(&b_time).unwrap()
-                }).unwrap().time.unwrap() as f64
+                        a_time.partial_cmp(&b_time).unwrap()
+                    })
+                    .unwrap()
+                    .time
+                    .unwrap() as f64
             };
             let time_max = if self.time_matrix.is_none() {
                 1.
             } else {
-                solutions.iter().max_by(|a, b| {
-                    let a_time = a.time.unwrap();
-                    let b_time = b.time.unwrap();
+                solutions
+                    .iter()
+                    .max_by(|a, b| {
+                        let a_time = a.time.unwrap();
+                        let b_time = b.time.unwrap();
 
-                    a_time.partial_cmp(&b_time).unwrap()
-                }).unwrap().time.unwrap() as f64
+                        a_time.partial_cmp(&b_time).unwrap()
+                    })
+                    .unwrap()
+                    .time
+                    .unwrap() as f64
             };
             let time_diff = time_max - time_min;
 
-            solutions.dedup_by(|a, b| {
-                a.distance == b.distance
-            });
-            solutions.sort_by(|a, b| {
-                let a_distance_norm = (a.distance - distance_min) / distance_diff;
-                let b_distance_norm = (b.distance - distance_min) / distance_diff;
+            solutions.dedup_by(|a, b| a.distance == b.distance);
+            solutions = solutions
+                .into_iter()
+                .map(|sol| Solution {
+                    path: sol.path,
+                    distance: sol.distance,
+                    time: sol.time,
+                    fitness: if self.time_matrix.is_some() {
+                        ((sol.distance - distance_min) / distance_diff) as f32
+                            + ((sol.time.unwrap() as f64 - time_min) / time_diff) as f32
+                    } else {
+                        ((sol.distance - distance_min) / distance_diff) as f32
+                    },
+                })
+                .collect();
 
-                if self.time_matrix.is_some() {
-                    let a_time_norm = (a.time.unwrap() as f64 - time_min) / time_diff;
-                    let b_time_norm = (a.time.unwrap() as f64 - time_min) / time_diff;
-                    (a_distance_norm + a_time_norm).partial_cmp(&(b_distance_norm + b_time_norm)).unwrap()
-                } else {
-                    a_distance_norm.partial_cmp(&b_distance_norm).unwrap()
-                }
-            });
-
+            solutions.sort_by(|a, b| a.fitness.total_cmp(&b.fitness));
             solutions.truncate(self.algo.solutions_count);
-            self.algo.vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
+            self.algo
+                .vape_pheromone(&mut pheromone_matrix, &iter_pheromone_matrix);
         }
 
         Ok(solutions)
     }
 
-    pub fn get_probabilities_list(&self, ant: &Ant, pheromone_matrix: &mut PheromoneMatrix) -> Result<Vec<f64>, &str> {
+    pub fn get_probabilities_list(
+        &self,
+        ant: &Ant,
+        pheromone_matrix: &mut PheromoneMatrix,
+    ) -> Result<Vec<f64>, &str> {
         let cities_preferences = self.get_ant_preferences(ant, pheromone_matrix);
         let cities_preferences_sum: f64 = cities_preferences.iter().sum();
 
         if cities_preferences_sum == 0. {
             Err("Error calculating")
         } else {
-            Ok(
-                self.algo.cities_list()
-                    .iter()
-                    .map(|city: &City| {
-                        let city_preference = cities_preferences[*city];
-                        city_preference / cities_preferences_sum
-                    })
-                    .collect()
-            )
+            Ok(self
+                .algo
+                .cities_list()
+                .iter()
+                .map(|city: &City| {
+                    let city_preference = cities_preferences[*city];
+                    city_preference / cities_preferences_sum
+                })
+                .collect())
         }
     }
 
@@ -137,7 +161,8 @@ impl TSAntColonyAlgorithm {
             visibility.powf(self.algo.alpha) * pheromone.powf(self.algo.beta)
         };
 
-        self.algo.cities_list()
+        self.algo
+            .cities_list()
             .into_iter()
             .map(get_ant_preference_to)
             .collect()
@@ -151,13 +176,13 @@ impl TSAntColonyAlgorithm {
 
             if let Some(result_raw) = cache.get(&ant.path.clone()) {
                 if result_raw.is_none() || result_raw.unwrap_or(0.) > 0. {
-                    return *result_raw
+                    return *result_raw;
                 }
             }
 
             let result = self.calculate_distance(ant);
             cache.put(ant.path.clone(), result);
-            return result
+            return result;
         }
     }
 
@@ -178,7 +203,7 @@ impl TSAntColonyAlgorithm {
 
         let time = match &self.time_matrix {
             Some(time_matrix) => time_matrix[ant.current_city()][*city],
-            None => 0
+            None => 0,
         } as f64;
 
         1. / (distance + time)
@@ -192,7 +217,7 @@ impl TSAntColonyAlgorithm {
             for evaluate in self.rules.iter() {
                 match evaluate(&ant.path) {
                     Some(pen) => p += pen,
-                    None => return None
+                    None => return None,
                 }
             }
             p as f64
@@ -221,7 +246,7 @@ impl TSAntColonyAlgorithm {
                 if let Some(penalty) = evaluate(&path) {
                     sum += penalty;
                 } else {
-                    return None
+                    return None;
                 }
             }
 

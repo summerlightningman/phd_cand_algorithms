@@ -5,6 +5,7 @@ pub struct Solution {
     pub path: Vec<City>,
     pub distance: f64,
     pub time: Option<usize>,
+    pub fitness: f32,
 }
 
 impl Debug for Solution {

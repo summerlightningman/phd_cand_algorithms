@@ -61,7 +61,7 @@ pub fn make_solutions(population: Population<City>, solutions_count: usize, fitn
     let mut solutions: Vec<Solution> = Vec::new();
 
     for ind in population.into_iter() {
-        if ind.fitness.is_some() {
+        if let Some(fitness) = ind.fitness {
             let distance = ind.fitnesses[0].unwrap();
             let time = if fitness_funcs.len() > 1 {
                 Some(ind.fitnesses[1].unwrap() as usize)
@@ -71,6 +71,7 @@ pub fn make_solutions(population: Population<City>, solutions_count: usize, fitn
 
             solutions.push(Solution {
                 path: ind.value,
+                fitness,
                 distance,
                 time,
             });
